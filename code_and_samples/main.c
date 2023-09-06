@@ -65,7 +65,7 @@ int main(int argc, char **argv)
   // argv[0] is a string with the name of the program
   // argv[1] is the first command line argument (input image)
   // argv[2] is the second command line argument (output image)
-  start = clock();
+  
   // Checking that 2 arguments are passed
   if (argc != 3)
   {
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
   }
 
   printf("Cell Detection Program\n");
-
+  start = clock();
   // Load image from file
   read_bitmap(argv[1], input_image);
 
