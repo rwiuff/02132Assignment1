@@ -1,0 +1,222 @@
+%Author(s), Course variables
+\newcommand{\titl}{02132 Assignment 1 report}
+\newcommand{\subtitl}{Software implementation of a cell detection and counting algorithm in C}
+\newcommand{\authone}{Mikkel Arn Andersen}
+\newcommand{\SIDone}{s224187}
+\newcommand{\authtwo}{Niclas Juul Schæffer}
+\newcommand{\SIDtwo}{s224744}
+\newcommand{\auththree}{Rasmus Kronborg Finnemann Wiuff}
+\newcommand{\SIDthree}{s163977}
+\newcommand{\lb}{\\}
+%Basics
+\documentclass[a4paper, english]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[bitstream-charter]{mathdesign}
+\usepackage{babel}
+\usepackage[moderate, mathspacing=normal]{savetrees}
+%Symbols and scientifics
+\usepackage{bm}
+\usepackage{physics}
+\usepackage{mathtools}
+\numberwithin{equation}{section}
+\usepackage{siunitx}
+\sisetup{
+per-mode = power ,
+round-mode = figures ,
+round-precision = 3 ,
+exponent-mode = input ,
+output-decimal-marker = {.} ,
+exponent-product = 	imes ,
+uncertainty-mode = separate ,
+range-phrase = - ,
+range-units =  single ,
+inter-unit-product = \ensuremath{{\cdot{}}} ,
+quantity-product = \ ,
+separate-uncertainty-units = single ,
+}
+
+%Appendix, TOC and Bibliography
+\usepackage{appendix}
+\renewcommand\appendixtocname{Bilag}
+\usepackage[nottoc]{tocbibind}
+\setcounter{tocdepth}{2}
+\usepackage{lastpage}
+
+%Figures
+\usepackage[svgnames]{xcolor} % Required to specify font color
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage[format=plain,
+    labelfont={bf,it,footnotesize},
+    textfont={it,footnotesize}]{caption}
+% \captionsetup[table]{name=Huskeord}
+\captionsetup{font={stretch=0.9}}
+\usepackage{wrapfig}
+\usepackage[a4paper, centering, rmargin=2.5cm, tmargin=2.5cm, lmargin=2.5cm, bmargin=3.5cm]{geometry}
+\usepackage{verbatim}
+\usepackage[space]{grffile}
+\usepackage[final]{pdfpages}
+\usepackage{multirow}
+\usepackage{fontawesome}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+
+%Header footer
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\lhead{02132 Computer Systems \lb Assignment 1 \lb October \nth{1}}
+\chead{\includegraphics[width=.05\textwidth]{DTU}}
+\rhead{\authone \ \textbf{\SIDone} \lb \authtwo \ \textbf{\SIDtwo} \lb \auththree \ \textbf{\SIDthree}}
+\cfoot{Side \thepage\, af\, \pageref*{LastPage}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\setlength{\headheight}{36.75034pt}
+
+%Text tools
+\usepackage{listings}
+\usepackage{parcolumns}
+\usepackage[super]{nth}
+\usepackage[normalem]{ulem}
+\usepackage{import}
+\usepackage{url}
+\usepackage{lipsum}
+\usepackage{microtype}
+\usepackage[pdfencoding=auto, psdextra]{hyperref}
+\hypersetup{
+    colorlinks   = true, %Colours links instead of ugly boxes
+    urlcolor     = blue, %Colour for external hyperlinks
+    linkcolor    = blue, %Colour of internal links
+    citecolor   = red %Colour of citations
+}
+\usepackage[capitalise]{cleveref}
+% \crefname{table}{Huskeord}{Huskeord}
+\usepackage{enumitem}
+\newlist{arrowlist}{itemize}{1}
+\setlist[arrowlist]{label={\(\rightarrow\)}}
+\usepackage{tabularray}
+\UseTblrLibrary{booktabs}
+\usepackage{todonotes}
+\usepackage[square, longnamesfirst, numbers]{natbib}
+\usepackage{empheq}
+% \usepackage[newfloat, outputdir=../]{minted} % Overleaf minted buildpath fix
+\usepackage[newfloat]{minted}
+\setminted{fontsize=\small,
+           linenos=true}
+\usemintedstyle{monokai}
+\SetupFloatingEnvironment{listing}{listname=Listings}
+\captionsetup[listing]{position=top, skip=-1pt}
+\newcommand{\im}[3]{\inputminted[linenos=true, python3=true, firstline=#2, lastline=#3]{python}{#1}}
+\newcommand{\java}[3]{\inputminted[linenos=true, firstline=#2, lastline=#3]{java}{#1}}
+\usepackage{dirtree}
+
+%Definitions and new commands
+\newcommand{\degr}{^{\circ}}
+\newcommand{\me}{\mathrm{e}}
+
+%Title and sectioning
+\def\Vhrulefill{\leavevmode\leaders\hrule height 0.7ex depth \dimexpr0.4pt-0.7ex\hfill\kern0pt}
+\usepackage{titlesec}
+\usepackage{titling}
+\definecolor{DTUred}{cmyk}{0, .91, .72, .23}
+\definecolor{FMNgrey}{cmyk}{.73,.43,.53,.38}
+%Use letters insted of numbers in section numbering
+% \renewcommand{\thesection}{\Alph{section}}
+% \renewcommand{\thesubsection}{\Alph{subsection}}
+
+\makeatletter
+\newcommand{\github}[1]{%
+   \href{#1}{\color{DTUred}\faGithub}%
+}
+\makeatother
+
+%Algorithms and pseudocode
+\newcounter{nalg}[section] % defines algorithm counter for chapter-level
+\renewcommand{\thenalg}{\thesection .\arabic{nalg}} %defines appearance of the algorithm counter
+\DeclareCaptionLabelFormat{algocaption}{Algoritme \thenalg} % defines a new caption label as Algorithm x.y
+
+\lstnewenvironment{algorithm}[1][] %defines the algorithm listing environment
+{
+    \refstepcounter{nalg} %increments algorithm number
+    \captionsetup{labelformat=algocaption,labelsep=colon} %defines the caption setup for: it ises label format as the declared caption label above and makes label and caption text to be separated by a ':'
+    \lstset{ %this is the stype
+        mathescape=true,
+        frame=tB,
+        numbers=left,
+        numberstyle=\tiny,
+        basicstyle=\scriptsize,
+        keywordstyle=\color{black}\bfseries\em,
+        keywords={,input, output, return, datatype, function, in, if, else, foreach, for, while, begin, end, do,} %add the keywords you want, or load a language as Rubens explains in his comment above.
+        numbers=left,
+        xleftmargin=.04\textwidth,
+        columns=fullflexible,
+        escapechar=\&,
+        #1 % this is to add specific settings to an usage of this environment (for instnce, the caption and referable label)
+    }
+}
+{}
+\newcommand*{\runtimeAnalysis}[3]{\hfill\makebox[#3em][l]{\(#1\)}\hspace{5em}\makebox[#3em][l]{\(#2\)}}%
+
+\begin{document}
+
+\titleformat{\section}[block]
+{\normalfont\Large\scshape\filright\color{DTUred}}{\fbox{\thesection}}{1em}{}
+
+\titleformat{\subsection}
+{\titlerule
+    \vspace{.8ex}%
+    \normalfont\scshape\color{FMNgrey}}
+{\thesubsection.}{.5em}{}
+
+\titleformat{\subsubsection}[wrap]
+{\normalfont\fontseries{b}\selectfont\filright}
+{\thesubsubsection.}{.5em}{}
+\titlespacing{\subsubsection}
+{12pc}{1.5ex plus .1ex minus .2ex}{1pc}
+
+\title{\vspace{-40mm}\Huge\scshape\color{DTUred} \titl\lb\vspace{-4mm}\rule{4cm}{0.5mm}\lb\Large{\subtitl}}
+\date{October \nth{1}}
+\preauthor{\begin{center}
+    \large \lineskip 0.5em%
+    \begin{tabular}[t]{r}}
+        \author{\textbf{Group: 22} \lb \lb \authone \ \textbf{\SIDone} \lb \authtwo \ \textbf{\SIDtwo} \lb \auththree \ \textbf{\SIDthree} \lb \href{https://github.com/rwiuff/02132Assignment1}{\color{DTUred}github.com/rwiuff/02132Assignment1} \github{https://github.com/rwiuff/02132Assignment1}}
+        \postauthor{\end{tabular}\par\end{center}}
+\maketitle
+
+\pagenumbering{arabic}
+
+\thispagestyle{empty}
+
+\section{Work distribution}
+Explain here who has done what, for both implementation and report.
+\section{Design}
+Explain here what the design process was. Explain how you structured your code (e.g., divide functionality into functions, decide the functions prototypes, etc.). Explain how you decide to represent and store data (e.g., what representation, what buffers to use, etc.). Motivate the design decision you made.
+\section{Implementation}
+Briefly discuss the implementation in C of your design. Explain how you have exploited the C language in the context of embedded system to implement the algorithm. You can include some code snippets if these are relevant to explain certain aspects of the implementation.
+\section{Optimizations and enhancements}
+Explain here the optimizations and enhancements you have implemented in order to improve cell detection rate, execution time, memory use, and/or other algorithm characteristics you considered relevant. Explain what was the motivation (thinking-process) behind the optimizations and enhancements you implemented.
+\section{Test and analysis}
+Report here the results from the test and analysis you have carried out according to the assignment instructions.  You need to at least address the following: functionality tests, execution time analysis, memory use analysis. 
+For each optimization/enhancements you implement, you need to perform tests to prove its validity. If you have implemented optimization/enhancements which do not give the expected benefits, describe why it does not work. 
+Remember to discuss the results from the test and analysis you have carried out, do not just present them, but explain and argue their meaning.
+\section{References}
+List here the references that you have used (if any) It can be articles or websites where you have found inspiration and understanding.
+%Bibliography herunder:
+%\newpage
+
+%\bibliographystyle{unsrtnat}
+%\bibliography{Bibliography}
+
+%\newpage
+
+%\listoffigures
+% \newpage
+% \listoftables
+%\newpage
+
+%Appendicer herunder:
+
+%\input{Appendix.tex}
+
+\end{document}
