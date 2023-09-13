@@ -22,7 +22,7 @@ void grey_scale(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], 
   }
 }
 //not finished 
-int detection(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]){
+int detection(unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]){
   int i;
   int j;
   int count = 0;
@@ -31,7 +31,7 @@ int detection(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]){
   {
     for (j = 0; j <= BMP_HEIGTH; j++)
     {
-      if(input_image[i][j][0] == input_image[i][j][255] && input_image[i][j][1] == input_image[i][j][255] && input_image[i][j][0] == input_image[i][j][255]){
+      if(output_image[i][j][0] == 255 && output_image[i][j][1] == 255 && output_image[i][j][2] == 255){
         count++;
       }
     }
@@ -90,11 +90,8 @@ int main(int argc, char **argv)
     exit(1);
   }
 
-  printf("Cell Detection Program\n");
+  
   start = clock();
-
-  int count = detection(input_image);
-  printf("Total detected cells: %d\n", count);
   // Load image from file
   read_bitmap(argv[1], input_image);
 
@@ -106,6 +103,10 @@ int main(int argc, char **argv)
 
   // Convert to output format for testing purposes
   to_rgb(tmp_image, output_image);
+
+  printf("Cell Detection Program\n");
+  int count = detection(output_image);
+  printf("Total detected cells: %d\n", count);
 
   // Save image to file
   write_bitmap(output_image, argv[2]);
