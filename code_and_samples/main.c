@@ -21,22 +21,64 @@ void grey_scale(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], 
     }
   }
 }
-//not finished 
-int detection(unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]){
-  int i;
-  int j;
-  int count = 0;
 
-  for (i = 0; i <= BMP_WIDTH; i++)
-  {
-    for (j = 0; j <= BMP_HEIGTH; j++)
-    {
-      if(output_image[i][j][0] == 255 && output_image[i][j][1] == 255 && output_image[i][j][2] == 255){
-        count++;
-      }
+
+//Detection Feature
+
+int inBounds(int x, int y) {
+    return x >= 0 && y >= 0 && x < BMP_WIDTH && y < BMP_HEIGTH;
+}
+
+void dfs(int x, int y, unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], int visited[BMP_WIDTH][BMP_HEIGTH], int *sumX, int *sumY, int *total) {
+    if (!inBounds(x, y) || visited[x][y] || output_image[x][y][0] != 255) {
+        return;
     }
-  }
-  return count;
+    visited[x][y] = 1;
+    *sumX += x;
+    *sumY += y;
+    *total += 1;
+
+    dfs(x + 1, y, output_image, visited, sumX, sumY, total);
+    dfs(x - 1, y, output_image, visited, sumX, sumY, total);
+    dfs(x, y + 1, output_image, visited, sumX, sumY, total);
+    dfs(x, y - 1, output_image, visited, sumX, sumY, total);
+}
+
+int detection(unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]) {
+    int i, j;
+    int count = 0;
+    
+    int visited[BMP_WIDTH][BMP_HEIGTH] = { {0} };
+    
+    for (i = 0; i < BMP_WIDTH; i++) {
+        for (j = 0; j < BMP_HEIGTH; j++) {
+            if (output_image[i][j][0] == 255 && output_image[i][j][1] == 255 && output_image[i][j][2] == 255 && !visited[i][j]) {
+                count++;
+                
+                int sumX = 0;
+                int sumY = 0;
+                int total = 0;
+                dfs(i, j, output_image, visited, &sumX, &sumY, &total);
+                
+                int centroidX = sumX / total;
+                int centroidY = sumY / total;
+
+                int thickness = 1;
+                for (int dx = -12; dx <= 12; dx++) {
+                    for (int dy = -12; dy <= 12; dy++) {
+                        if (inBounds(centroidX + dx, centroidY + dy)) {
+                            if ((dx >= -thickness && dx <= thickness) || (dy >= -thickness && dy <= thickness)) {
+                                output_image[centroidX + dx][centroidY + dy][0] = 255;
+                                output_image[centroidX + dx][centroidY + dy][1] = 0;
+                                output_image[centroidX + dx][centroidY + dy][2] = 0;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return count;
 }
 
 void binary_threshold(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
