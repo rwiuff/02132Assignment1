@@ -21,6 +21,23 @@ void grey_scale(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], 
     }
   }
 }
+//not finished 
+int detection(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]){
+  int i;
+  int j;
+  int count = 0;
+
+  for (i = 0; i <= BMP_WIDTH; i++)
+  {
+    for (j = 0; j <= BMP_HEIGTH; j++)
+    {
+      if(input_image[i][j][0] == input_image[i][j][255] && input_image[i][j][1] == input_image[i][j][255] && input_image[i][j][0] == input_image[i][j][255]){
+        count++;
+      }
+    }
+  }
+  return count;
+}
 
 void binary_threshold(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
 {
@@ -75,6 +92,9 @@ int main(int argc, char **argv)
 
   printf("Cell Detection Program\n");
   start = clock();
+
+  int count = detection(input_image);
+  printf("Total detected cells: %d\n", count);
   // Load image from file
   read_bitmap(argv[1], input_image);
 
