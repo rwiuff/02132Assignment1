@@ -110,6 +110,41 @@ void to_rgb(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output
   }
 }
 
+void erode(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
+{
+  unsigned char ErosionMap[BMP_WIDTH][BMP_HEIGTH] = {0};
+  int i;
+  int j;
+  for (i = 1; i <= (BMP_WIDTH-1); i++)
+  {
+	  tmp_image[i-1][0] = 0;
+	  tmp_image[i-1][BMP_HEIGTH] = 0;
+	  
+	  tmp_image[0][i-1] = 0;
+	  tmp_image[BMP_WIDTH][i-1] = 0;
+    for (j = 1; j <= (BMP_HEIGTH-1); j++)
+    {
+	
+	  
+		
+		
+      if((( tmp_image[i-1][j] == 0 || tmp_image[i+1][j] == 0 ) || ( tmp_image[i][j+1] == 0 || tmp_image[i][j-1] == 0 )  )){ 
+		  ErosionMap[i][j]=0;
+		
+    } else { ErosionMap[i][j]=255;
+		} 
+  }	
+}	
+ 
+  for (int o = 0; o < BMP_WIDTH; o++) {
+        for (int p = 0; p < BMP_HEIGTH; p++) {
+            if (ErosionMap[o][p]==0){ tmp_image[o][p]=0;}
+        }
+        
+        
+    }
+}
+
 // Declaring the array to store the image (unsigned char = unsigned 8 bit)
 unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
 unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
@@ -143,6 +178,9 @@ int main(int argc, char **argv)
   // Apply binary threshold
   binary_threshold(tmp_image);
 
+  // Erode the map to seperate cells
+  erode(tmp_image);
+  
   // Convert to output format for testing purposes
   to_rgb(tmp_image, output_image);
 
