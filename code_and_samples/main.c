@@ -89,7 +89,7 @@ int detection(unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], u
         {
           for (int l = j + 1; l < j + 13; l++)
           {
-            //printf("%d ", tmp_image[k][j]);
+            
             if (tmp_image[k][l] == 255)
             {
               nr2detect++;
