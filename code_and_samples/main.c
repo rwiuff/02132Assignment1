@@ -22,63 +22,90 @@ void grey_scale(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], 
   }
 }
 
+// Detection Feature
 
-//Detection Feature
-
-int inBounds(int x, int y) {
-    return x >= 0 && y >= 0 && x < BMP_WIDTH && y < BMP_HEIGTH;
+int inBounds(int x, int y)
+{
+  return x >= 0 && y >= 0 && x < BMP_WIDTH && y < BMP_HEIGTH;
 }
 
-void dfs(int x, int y, unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int visited[BMP_WIDTH][BMP_HEIGTH], int *sumX, int *sumY, int *total) {
-    if (!inBounds(x, y) || visited[x][y] || tmp_image[x][y] != 255) {
-        return;
-    }
-    visited[x][y] = 1;
-    *sumX += x;
-    *sumY += y;
-    *total += 1;
-
-    dfs(x + 1, y, tmp_image, visited, sumX, sumY, total);
-    dfs(x - 1, y, tmp_image, visited, sumX, sumY, total);
-    dfs(x, y + 1, tmp_image, visited, sumX, sumY, total);
-    dfs(x, y - 1, tmp_image, visited, sumX, sumY, total);
-}
-
-int detection(unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH]) {
-    int i, j;
-    int count = 0;
-    
-    int visited[BMP_WIDTH][BMP_HEIGTH] = { {0} };
-    
-    for (i = 0; i < BMP_WIDTH; i++) {
-        for (j = 0; j < BMP_HEIGTH; j++) {
-            if (tmp_image[i][j] == 255 && !visited[i][j]) {
-                count++;
-                
-                int sumX = 0;
-                int sumY = 0;
-                int total = 0;
-                dfs(i, j, tmp_image, visited, &sumX, &sumY, &total);
-                
-                int centroidX = sumX / total;
-                int centroidY = sumY / total;
-
-                int thickness = 1;
-                for (int dx = -12; dx <= 12; dx++) {
-                    for (int dy = -12; dy <= 12; dy++) {
-                        if (inBounds(centroidX + dx, centroidY + dy)) {
-                            if ((dx >= -thickness && dx <= thickness) || (dy >= -thickness && dy <= thickness)) {
-                                output_image[centroidX + dx][centroidY + dy][0] = 255;
-                                output_image[centroidX + dx][centroidY + dy][1] = 0;
-                                output_image[centroidX + dx][centroidY + dy][2] = 0;
-                            }
-                        }
-                    }
-                }
-            }
+void drawX(unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], int x, int y)
+{
+  int thickness = 1;
+  for (int dx = -12; dx <= 12; dx++)
+  {
+    for (int dy = -12; dy <= 12; dy++)
+    {
+      if (inBounds(x + dx, y + dy))
+      {
+        if ((dx >= -thickness && dx <= thickness) || (dy >= -thickness && dy <= thickness))
+        {
+          output_image[x + dx][y + dy][0] = 255;
+          output_image[x + dx][y + dy][1] = 0;
+          output_image[x + dx][y + dy][2] = 0;
         }
+      }
     }
-    return count;
+  }
+}
+
+int frameDetection(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j)
+{
+  int detected = 0;
+  int frameMask[52][2] = {{0, 0}, {0, 1}, {0, 2}, {0, 3}, {0, 4}, {0, 5}, {0, 6}, {0, 7}, {0, 8}, {0, 9}, {0, 10}, {0, 11}, {0, 12}, {0, 13}, {1, 0}, {1, 13}, {2, 0}, {2, 13}, {3, 0}, {3, 13}, {4, 0}, {4, 13}, {5, 0}, {5, 13}, {6, 0}, {6, 13}, {7, 0}, {7, 13}, {8, 0}, {8, 13}, {9, 0}, {9, 13}, {10, 0}, {10, 13}, {11, 0}, {11, 13}, {12, 0}, {12, 13}, {13, 0}, {13, 1}, {13, 2}, {13, 3}, {13, 4}, {13, 5}, {13, 6}, {13, 7}, {13, 8}, {13, 9}, {13, 10}, {13, 11}, {13, 12}, {0, 13}};
+  for (int x = 0; x < 52; x++)
+  {
+    if (tmp_image[i + frameMask[x][0]][j + frameMask[x][1]] == 255)
+    {
+      detected = 1;
+
+      break;
+    }
+  }
+  return detected;
+}
+
+int detection(unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
+{
+  int i, j;
+  int count = 0;
+  int cell = 0;
+  int nrdectect = 0;
+  for (int i = 0; i < BMP_WIDTH; i++)
+  {
+    for (int j = 0; j < BMP_HEIGTH; j++)
+    {
+      int frameCell = frameDetection(tmp_image, i, j);
+      // printf("%d", frameCell);
+      if (frameCell == 0)
+      {
+        for (int k = i + 1; k < i + 13; k++)
+        {
+          for (int l = j + 1; l < j + 13; l++)
+          {
+            if (tmp_image[k][l] == 255)
+            {
+              nrdectect++;
+              cell = 1;
+            }
+            if (cell == 1)
+            {
+              tmp_image[k][l] = 0;
+            }
+            //printf("%d", cell);
+          }
+        }
+        if (cell == 1)
+        {
+          count++;
+          drawX(output_image, i + 7, j + 7);
+          cell = 0;
+        }
+      }
+    }
+  }
+  //printf("%d\n", nrdectect);
+  return count;
 }
 
 void binary_threshold(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
@@ -110,40 +137,43 @@ void to_rgb(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output
   }
 }
 
-void erode(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
+/* void erode(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
 {
   unsigned char ErosionMap[BMP_WIDTH][BMP_HEIGTH] = {0};
   int i;
   int j;
-  for (i = 1; i <= (BMP_WIDTH-1); i++)
+  for (i = 1; i <= (BMP_WIDTH - 1); i++)
   {
-	  tmp_image[i-1][0] = 0;
-	  tmp_image[i-1][BMP_HEIGTH] = 0;
-	  
-	  tmp_image[0][i-1] = 0;
-	  tmp_image[BMP_WIDTH][i-1] = 0;
-    for (j = 1; j <= (BMP_HEIGTH-1); j++)
+    tmp_image[i - 1][0] = 0;
+    tmp_image[i - 1][BMP_HEIGTH] = 0;
+
+    tmp_image[0][i - 1] = 0;
+    tmp_image[BMP_WIDTH][i - 1] = 0;
+    for (j = 1; j <= (BMP_HEIGTH - 1); j++)
     {
-	
-	  
-		
-		
-      if((( tmp_image[i-1][j] == 0 || tmp_image[i+1][j] == 0 ) || ( tmp_image[i][j+1] == 0 || tmp_image[i][j-1] == 0 )  )){ 
-		  ErosionMap[i][j]=0;
-		
-    } else { ErosionMap[i][j]=255;
-		} 
-  }	
-}	
- 
-  for (int o = 0; o < BMP_WIDTH; o++) {
-        for (int p = 0; p < BMP_HEIGTH; p++) {
-            if (ErosionMap[o][p]==0){ tmp_image[o][p]=0;}
-        }
-        
-        
+
+      if (((tmp_image[i - 1][j] == 0 || tmp_image[i + 1][j] == 0) || (tmp_image[i][j + 1] == 0 || tmp_image[i][j - 1] == 0)))
+      {
+        ErosionMap[i][j] = 0;
+      }
+      else
+      {
+        ErosionMap[i][j] = 255;
+      }
     }
-}
+  }
+
+  for (int o = 0; o < BMP_WIDTH; o++)
+  {
+    for (int p = 0; p < BMP_HEIGTH; p++)
+    {
+      if (ErosionMap[o][p] == 0)
+      {
+        tmp_image[o][p] = 0;
+      }
+    }
+  }
+} */
 
 // Declaring the array to store the image (unsigned char = unsigned 8 bit)
 unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
@@ -159,7 +189,7 @@ int main(int argc, char **argv)
   // argv[0] is a string with the name of the program
   // argv[1] is the first command line argument (input image)
   // argv[2] is the second command line argument (output image)
-  
+
   // Checking that 2 arguments are passed
   if (argc != 3)
   {
@@ -167,7 +197,6 @@ int main(int argc, char **argv)
     exit(1);
   }
 
-  
   start = clock();
   // Load image from file
   read_bitmap(argv[1], input_image);
@@ -179,8 +208,8 @@ int main(int argc, char **argv)
   binary_threshold(tmp_image);
 
   // Erode the map to seperate cells
-  erode(tmp_image);
-  
+  // erode(tmp_image);
+
   // Convert to output format for testing purposes
   to_rgb(tmp_image, output_image);
 
@@ -193,7 +222,7 @@ int main(int argc, char **argv)
 
   printf("Done!\n");
   end = clock();
-  cpu_time_used = (end - start)*1000.0/CLOCKS_PER_SEC;
+  cpu_time_used = (end - start) * 1000.0 / CLOCKS_PER_SEC;
   printf("Total time: %f ms\n", cpu_time_used);
   return 0;
 }
