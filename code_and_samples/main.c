@@ -29,8 +29,8 @@ int inBounds(int x, int y) {
     return x >= 0 && y >= 0 && x < BMP_WIDTH && y < BMP_HEIGTH;
 }
 
-void dfs(int x, int y, unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], int visited[BMP_WIDTH][BMP_HEIGTH], int *sumX, int *sumY, int *total) {
-    if (!inBounds(x, y) || visited[x][y] || output_image[x][y][0] != 255) {
+void dfs(int x, int y, unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int visited[BMP_WIDTH][BMP_HEIGTH], int *sumX, int *sumY, int *total) {
+    if (!inBounds(x, y) || visited[x][y] || tmp_image[x][y] != 255) {
         return;
     }
     visited[x][y] = 1;
@@ -38,13 +38,13 @@ void dfs(int x, int y, unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHA
     *sumY += y;
     *total += 1;
 
-    dfs(x + 1, y, output_image, visited, sumX, sumY, total);
-    dfs(x - 1, y, output_image, visited, sumX, sumY, total);
-    dfs(x, y + 1, output_image, visited, sumX, sumY, total);
-    dfs(x, y - 1, output_image, visited, sumX, sumY, total);
+    dfs(x + 1, y, tmp_image, visited, sumX, sumY, total);
+    dfs(x - 1, y, tmp_image, visited, sumX, sumY, total);
+    dfs(x, y + 1, tmp_image, visited, sumX, sumY, total);
+    dfs(x, y - 1, tmp_image, visited, sumX, sumY, total);
 }
 
-int detection(unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]) {
+int detection(unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH]) {
     int i, j;
     int count = 0;
     
@@ -52,13 +52,13 @@ int detection(unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]) {
     
     for (i = 0; i < BMP_WIDTH; i++) {
         for (j = 0; j < BMP_HEIGTH; j++) {
-            if (output_image[i][j][0] == 255 && output_image[i][j][1] == 255 && output_image[i][j][2] == 255 && !visited[i][j]) {
+            if (tmp_image[i][j] == 255 && !visited[i][j]) {
                 count++;
                 
                 int sumX = 0;
                 int sumY = 0;
                 int total = 0;
-                dfs(i, j, output_image, visited, &sumX, &sumY, &total);
+                dfs(i, j, tmp_image, visited, &sumX, &sumY, &total);
                 
                 int centroidX = sumX / total;
                 int centroidY = sumY / total;
@@ -147,7 +147,7 @@ int main(int argc, char **argv)
   to_rgb(tmp_image, output_image);
 
   printf("Cell Detection Program\n");
-  int count = detection(output_image);
+  int count = detection(output_image, tmp_image);
   printf("Total detected cells: %d\n", count);
 
   // Save image to file
