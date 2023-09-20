@@ -66,45 +66,53 @@ int frameDetection(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j)
 
 int detection(unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
 {
-  int i, j;
   int count = 0;
   int cell = 0;
-  int nrdectect = 0;
-  for (int i = 0; i < BMP_WIDTH; i++)
+  int nrdetect = 0;
+  int nr2detect = 0;
+
+  for (int i = 0; i < BMP_WIDTH - 13; i++)
   {
-    for (int j = 0; j < BMP_HEIGTH; j++)
+    for (int j = 0; j < BMP_HEIGTH - 13; j++)
     {
-      int frameCell = frameDetection(tmp_image, i, j);
-      // printf("%d", frameCell);
-      if (frameCell == 0)
+      
+
+      if (tmp_image[i][j] == 255)
+            {
+              nrdetect++;
+              cell = 1;
+            }
+
+      if (frameDetection(tmp_image, i, j) == 0)
       {
-        
         for (int k = i + 1; k < i + 13; k++)
         {
           for (int l = j + 1; l < j + 13; l++)
           {
+            //printf("%d ", tmp_image[k][j]);
             if (tmp_image[k][l] == 255)
             {
-              nrdectect++;
+              nr2detect++;
               cell = 1;
             }
+
             if (cell == 1)
             {
-              tmp_image[k][l] = 0;
+              // tmp_image[k][l] = 0;
             }
-            //printf("%d", cell);
           }
         }
+        
         if (cell == 1)
         {
           count++;
           drawX(output_image, i + 7, j + 7);
-          cell = 0;
         }
       }
     }
   }
-  printf("%d\n", nrdectect);
+  printf("detects before framedetection: %d\n", nrdetect);
+  printf("detects after framedetection: %d\n", nr2detect);
   return count;
 }
 
