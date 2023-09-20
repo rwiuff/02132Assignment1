@@ -58,7 +58,6 @@ int frameDetection(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j)
     if (tmp_image[i + frameMask[x][0]][j + frameMask[x][1]] == 255)
     {
       detected = 1;
-
       break;
     }
   }
@@ -79,6 +78,7 @@ int detection(unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], u
       // printf("%d", frameCell);
       if (frameCell == 0)
       {
+        
         for (int k = i + 1; k < i + 13; k++)
         {
           for (int l = j + 1; l < j + 13; l++)
@@ -104,7 +104,7 @@ int detection(unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], u
       }
     }
   }
-  //printf("%d\n", nrdectect);
+  printf("%d\n", nrdectect);
   return count;
 }
 
