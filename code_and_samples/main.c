@@ -58,7 +58,7 @@ int frameDetection(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j)
     if (tmp_image[i + frameMask[x][0]][j + frameMask[x][1]] == 255) // If the frame pixels contain a white pixel.
     {
       clear = 0; // Indicate frame is not clear.
-      break; // Break the search.
+      break;     // Break the search.
     }
   }
   return clear;
@@ -90,6 +90,7 @@ void erase(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j)
     for (int l = j; l <= j + 12; l++) // Iterate over cell area columns
     {
       tmp_image[k][l] = 0; // Zerorise pixel value.
+      // printf("Deleting pixel (%d,%d)\n", k,l);
     }
   }
 }
@@ -97,7 +98,7 @@ void erase(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j)
 // Detection method
 int detection(unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
 {
-  int count = 0; // Cell counter.
+  int count = 0;                      // Cell counter.
   for (int i = 0; i < BMP_WIDTH; i++) // Iterate over picture rows.
   {
     for (int j = 0; j < BMP_HEIGTH; j++) // Iterate over picture columns.
@@ -121,7 +122,7 @@ int detection(unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned
 // Binary threshold method.
 void binary_threshold(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
 {
-  int threshold = 90; // Initial threshold.
+  int threshold = 90;                  // Initial threshold.
   for (int i = 0; i <= BMP_WIDTH; i++) // Iterate over rows.
   {
     for (int j = 0; j <= BMP_HEIGTH; j++) // Iterate over columns.
@@ -187,7 +188,7 @@ void erode(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
 // Count white pixels
 int pixelCheck(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
 {
-  int pixels = 0; // Zerorised counter.
+  int pixels = 0;                     // Zerorised counter.
   for (int i = 0; i < BMP_WIDTH; i++) // For each row.
   {
     for (int j = 0; j < BMP_HEIGTH; j++) // And each column.
@@ -237,18 +238,18 @@ int main(int argc, char **argv)
 
   // Initialise counters for terminal writeout.
   int pixels = 0; // White pixels left in picture.
-  int count = 0; // Counted cells.
-  int step = 0; // Iteration steps.
+  int count = 0;  // Counted cells.
+  int step = 0;   // Iteration steps.
 
   // Do-While loop for erosion and detection.
   do // Do the following:
   {
-    pixels = pixelCheck(tmp_image); // Count white pixels.
-    printf("Pixels left: %d\n", pixels); // Print counted whities.
-    erode(tmp_image); // Perform erosion.
+    pixels = pixelCheck(tmp_image);       // Count white pixels.
+    printf("Pixels left: %d\n", pixels);  // Print counted whities.
+    erode(tmp_image);                     // Perform erosion.
     count += detection(image, tmp_image); // Detect cells and add to counter.
-    step++; // Increment step count.
-  } while (pixels != 0); // Until no whities are left.
+    step++;                               // Increment step count.
+  } while (pixels != 0);                  // Until no whities are left.
 
   // Convert to output format for testing purposes
   // to_rgb(tmp_image, output_image);
