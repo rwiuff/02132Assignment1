@@ -29,7 +29,7 @@ int inBounds(int x, int y)
   return x >= 0 && y >= 0 && x < BMP_WIDTH && y < BMP_HEIGTH;
 }
 
-void drawX(unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], int x, int y)
+void drawX(unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], int x, int y)
 {
   int thickness = 1;
   for (int dx = -12; dx <= 12; dx++)
@@ -40,9 +40,9 @@ void drawX(unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], int 
       {
         if ((dx >= -thickness && dx <= thickness) || (dy >= -thickness && dy <= thickness))
         {
-          output_image[x + dx][y + dy][0] = 255;
-          output_image[x + dx][y + dy][1] = 0;
-          output_image[x + dx][y + dy][2] = 0;
+          image[x + dx][y + dy][0] = 255;
+          image[x + dx][y + dy][1] = 0;
+          image[x + dx][y + dy][2] = 0;
         }
       }
     }
@@ -51,68 +51,70 @@ void drawX(unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], int 
 
 int frameDetection(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j)
 {
-  int detected = 0;
+  int clear = 1;
   int frameMask[52][2] = {{0, 0}, {0, 1}, {0, 2}, {0, 3}, {0, 4}, {0, 5}, {0, 6}, {0, 7}, {0, 8}, {0, 9}, {0, 10}, {0, 11}, {0, 12}, {0, 13}, {1, 0}, {1, 13}, {2, 0}, {2, 13}, {3, 0}, {3, 13}, {4, 0}, {4, 13}, {5, 0}, {5, 13}, {6, 0}, {6, 13}, {7, 0}, {7, 13}, {8, 0}, {8, 13}, {9, 0}, {9, 13}, {10, 0}, {10, 13}, {11, 0}, {11, 13}, {12, 0}, {12, 13}, {13, 0}, {13, 1}, {13, 2}, {13, 3}, {13, 4}, {13, 5}, {13, 6}, {13, 7}, {13, 8}, {13, 9}, {13, 10}, {13, 11}, {13, 12}, {0, 13}};
+
   for (int x = 0; x < 52; x++)
   {
+    // int varx = i + frameMask[x][0];
+    // int vary = j + frameMask[x][1];
     if (tmp_image[i + frameMask[x][0]][j + frameMask[x][1]] == 255)
     {
-      detected = 1;
+      clear = 0;
       break;
+    }
+  }
+  return clear;
+}
+
+int cellCapture(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j)
+{
+  int detected = 0;
+
+  for (int k = i + 1; k < i + 12; k++)
+  {
+    for (int l = j + 1; l < j + 12; l++)
+    {
+      if (tmp_image[k][l] == 255)
+      {
+        detected = 1;
+      }
     }
   }
   return detected;
 }
 
-int detection(unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
+void erase(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j)
+{
+  for (int k = i; k <= i + 12; k++)
+  {
+    for (int l = j; l <= j + 12; l++)
+    {
+      tmp_image[k][l] = 0;
+    }
+  }
+}
+
+int detection(unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
 {
   int count = 0;
-  int cell = 0;
-  int nrdetect = 0;
-  int nr2detect = 0;
-
-  for (int i = 0; i < BMP_WIDTH - 13; i++)
+  for (int i = 0; i < BMP_WIDTH; i++)
   {
-    for (int j = 0; j < BMP_HEIGTH - 13; j++)
+    for (int j = 0; j < BMP_HEIGTH; j++)
     {
-      
-
-      if (tmp_image[i][j] == 255)
-            {
-              nrdetect++;
-              cell = 1;
-            }
-
       if (frameDetection(tmp_image, i, j) == 0)
       {
-        for (int k = i + 1; k < i + 13; k++)
-        {
-          for (int l = j + 1; l < j + 13; l++)
-          {
-            
-            if (tmp_image[k][l] == 255)
-            {
-              nr2detect++;
-              cell = 1;
-            }
-
-            if (cell == 1)
-            {
-              // tmp_image[k][l] = 0;
-            }
-          }
-        }
-        
-        if (cell == 1)
+        if (cellCapture(tmp_image, i, j) == 1)
         {
           count++;
-          drawX(output_image, i + 7, j + 7);
+          // printf("Drawin cell: %d\n", count);
+          drawX(image, i + 7, j + 7);
+          // printf("Erasing cell: %d\n", count);
+          erase(tmp_image, i, j);
         }
       }
     }
   }
-  printf("detects before framedetection: %d\n", nrdetect);
-  printf("detects after framedetection: %d\n", nr2detect);
   return count;
 }
 
@@ -145,7 +147,7 @@ void to_rgb(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output
   }
 }
 
-/* void erode(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
+void erode(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
 {
   unsigned char ErosionMap[BMP_WIDTH][BMP_HEIGTH] = {0};
   int i;
@@ -181,11 +183,27 @@ void to_rgb(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output
       }
     }
   }
-} */
+}
+
+int pixelCheck(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
+{
+  int pixels = 0;
+  for (int i = 0; i < BMP_WIDTH; i++)
+  {
+    for (int j = 0; j < BMP_HEIGTH; j++)
+    {
+      if (tmp_image[i][j] == 255)
+      {
+        pixels++;
+      }
+    }
+  }
+  return pixels;
+}
 
 // Declaring the array to store the image (unsigned char = unsigned 8 bit)
-unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
-unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
+unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
+// unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
 unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH];
 
 // Main function
@@ -207,26 +225,36 @@ int main(int argc, char **argv)
 
   start = clock();
   // Load image from file
-  read_bitmap(argv[1], input_image);
+  read_bitmap(argv[1], image);
 
   // Convert to grey scale
-  grey_scale(input_image, tmp_image);
+  grey_scale(image, tmp_image);
 
   // Apply binary threshold
   binary_threshold(tmp_image);
 
   // Erode the map to seperate cells
-  // erode(tmp_image);
+  // printf("PixelCheck: %d\n", pixelCheck(tmp_image));
+  int pixels = 0;
+  int count = 0;
+  int step = 0;
+  do
+  {
+    pixels = pixelCheck(tmp_image);
+    printf("Pixels: %d\n", pixels);
+    erode(tmp_image);
+    count += detection(image, tmp_image);
+    step++;
+  } while (pixels != 0);
 
   // Convert to output format for testing purposes
-  to_rgb(tmp_image, output_image);
-
+  // to_rgb(tmp_image, output_image);
+  printf("Steps: %d\n", step);
   printf("Cell Detection Program\n");
-  int count = detection(output_image, tmp_image);
   printf("Total detected cells: %d\n", count);
 
   // Save image to file
-  write_bitmap(output_image, argv[2]);
+  write_bitmap(image, argv[2]);
 
   printf("Done!\n");
   end = clock();
