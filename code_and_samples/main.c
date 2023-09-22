@@ -155,7 +155,7 @@ void erode(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
   for (i = 1; i <= (BMP_WIDTH - 1); i++)
   {
     tmp_image[i - 1][0] = 0;
-    tmp_image[i - 1][BMP_HEIGTH] = 0;
+    tmp_image[i - 1][BMP_HEIGTH-1] = 0;
 
     tmp_image[0][i - 1] = 0;
     tmp_image[BMP_WIDTH][i - 1] = 0;
