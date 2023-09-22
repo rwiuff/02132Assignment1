@@ -50,14 +50,27 @@ void drawX(unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], int x, int 
 // Detection of pixels in detection frame
 int frameDetection(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j)
 {
-  int clear = 1; // Variable indicating the frame is clear.
+  int clear = 0; // Variable indicating the frame is clear.
   // Set of coordinates for the frame around a picture.
-  int frameMask[52][2] = {{0, 0}, {0, 1}, {0, 2}, {0, 3}, {0, 4}, {0, 5}, {0, 6}, {0, 7}, {0, 8}, {0, 9}, {0, 10}, {0, 11}, {0, 12}, {0, 13}, {1, 0}, {1, 13}, {2, 0}, {2, 13}, {3, 0}, {3, 13}, {4, 0}, {4, 13}, {5, 0}, {5, 13}, {6, 0}, {6, 13}, {7, 0}, {7, 13}, {8, 0}, {8, 13}, {9, 0}, {9, 13}, {10, 0}, {10, 13}, {11, 0}, {11, 13}, {12, 0}, {12, 13}, {13, 0}, {13, 1}, {13, 2}, {13, 3}, {13, 4}, {13, 5}, {13, 6}, {13, 7}, {13, 8}, {13, 9}, {13, 10}, {13, 11}, {13, 12}, {0, 13}};
+  int frameMask[52][2] = {{0, 0}, {0, 1}, {0, 2}, {0, 3}, {0, 4}, {0, 5}, {0, 6}, {0, 7}, {0, 8}, {0, 9}, {0, 10}, {0, 11}, {0, 12}, {0, 13},
+                          {1, 0}, {1, 13},
+                          {2, 0}, {2, 13},
+                          {3, 0}, {3, 13},
+                          {4, 0}, {4, 13},
+                          {5, 0}, {5, 13},
+                          {6, 0}, {6, 13},
+                          {7, 0}, {7, 13},
+                          {8, 0}, {8, 13},
+                          {9, 0}, {9, 13},
+                          {10, 0}, {10, 13},
+                          {11, 0}, {11, 13},
+                          {12, 0}, {12, 13},
+                          {13, 0}, {13, 1}, {13, 2}, {13, 3}, {13, 4}, {13, 5}, {13, 6}, {13, 7}, {13, 8}, {13, 9}, {13, 10}, {13, 11}, {13, 12}, {0, 13}};
   for (int x = 0; x < 52; x++) // Iterate over frame pixels
   {
-    if (tmp_image[i + frameMask[x][0]][j + frameMask[x][1]] == 255) // If the frame pixels contain a white pixel.
+    if (tmp_image[i + frameMask[x][0]][j + frameMask[x][1]] != 255) // If the frame pixels contain a white pixel.
     {
-      clear = 0; // Indicate frame is not clear.
+      clear = 1; // Indicate frame is clear.
       break;     // Break the search.
     }
   }
@@ -69,9 +82,9 @@ int cellCapture(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j)
 {
   int detected = 0; // Variable indicating contents in capture area.
 
-  for (int k = i + 1; k < i + 12; k++) // Iterate within cell area rows.
+  for (int k = i + 1; k <= i + 12; k++) // Iterate within cell area columns.
   {
-    for (int l = j + 1; l < j + 12; l++) // Iterate within cell area columns.
+    for (int l = j + 1; l <= j + 12; l++) // Iterate within cell area rows.
     {
       if (tmp_image[k][l] == 255) // If a white pixel exists.
       {
@@ -85,12 +98,15 @@ int cellCapture(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j)
 // Erase discovered cells
 void erase(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j)
 {
-  for (int k = i; k <= i + 12; k++) // Iterate over cell area rows
+  for (int k = i; k <= i + 13; k++) // Iterate over cell area columns
   {
-    for (int l = j; l <= j + 12; l++) // Iterate over cell area columns
+    for (int l = j; l <= j + 13; l++) // Iterate over cell area rows
     {
-      tmp_image[k][l] = 0; // Zerorise pixel value.
-      // printf("Deleting pixel (%d,%d)\n", k,l);
+      if (inBounds(k, l) == 1)
+      {
+        tmp_image[k][l] = 0; // Zerorise pixel value.
+        // printf("Deleting pixel (%d,%d)\n", k,l);
+      }
     }
   }
 }
@@ -99,9 +115,9 @@ void erase(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j)
 int detection(unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
 {
   int count = 0;                      // Cell counter.
-  for (int i = 0; i < BMP_WIDTH; i++) // Iterate over picture rows.
+  for (int i = 0; i < BMP_WIDTH; i++) // Iterate over picture columns.
   {
-    for (int j = 0; j < BMP_HEIGTH; j++) // Iterate over picture columns.
+    for (int j = 0; j < BMP_HEIGTH; j++) // Iterate over picture rows.
     {
       if (frameDetection(tmp_image, i, j) == 0) // Check if a given frame is clear.
       {
@@ -109,9 +125,10 @@ int detection(unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned
         {
           count++; // Increment cell counter.
           // printf("Drawin cell: %d\n", count);
-          drawX(image, i + 7, j + 7); // Draw a cross on the detected cell.
+          drawX(image, i + 12, j + 12); // Draw a cross on the detected cell.
           // printf("Erasing cell: %d\n", count);
           erase(tmp_image, i, j); // Clear the area of white pixels.
+          i += 12;
         }
       }
     }
@@ -123,9 +140,9 @@ int detection(unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned
 void binary_threshold(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
 {
   int threshold = 90;                  // Initial threshold.
-  for (int i = 0; i <= BMP_WIDTH; i++) // Iterate over rows.
+  for (int i = 0; i <= BMP_WIDTH; i++) // Iterate over columns.
   {
-    for (int j = 0; j <= BMP_HEIGTH; j++) // Iterate over columns.
+    for (int j = 0; j <= BMP_HEIGTH; j++) // Iterate over rows.
     {
       tmp_image[i][j] = tmp_image[i][j] <= threshold ? 0 : 255; // Ternary operator: If a pixel intensity is below or equal to
     }                                                           // threshold, set it to zero, otherwise 255
@@ -155,7 +172,7 @@ void erode(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
   for (i = 1; i <= (BMP_WIDTH - 1); i++)
   {
     tmp_image[i - 1][0] = 0;
-    tmp_image[i - 1][BMP_HEIGTH-1] = 0;
+    tmp_image[i - 1][BMP_HEIGTH - 1] = 0;
 
     tmp_image[0][i - 1] = 0;
     tmp_image[BMP_WIDTH][i - 1] = 0;
@@ -207,6 +224,7 @@ unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
 // unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
 unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH];
 
+// unsigned char test_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
 // Main function
 int main(int argc, char **argv)
 {
@@ -249,10 +267,11 @@ int main(int argc, char **argv)
     erode(tmp_image);                     // Perform erosion.
     count += detection(image, tmp_image); // Detect cells and add to counter.
     step++;                               // Increment step count.
-  } while (pixels != 0);                  // Until no whities are left.
+    // to_rgb(tmp_image, test_image);
+    // write_bitmap(test_image, argv[2]);
+  } while (pixels != 0); // Until no whities are left.
 
   // Convert to output format for testing purposes
-  // to_rgb(tmp_image, output_image);
   printf("Steps: %d\n", step);
   printf("Cell Detection Program\n");
   printf("Total detected cells: %d\n", count);
@@ -263,6 +282,6 @@ int main(int argc, char **argv)
   printf("Done!\n");
   end = clock();
   cpu_time_used = (end - start) * 1000.0 / CLOCKS_PER_SEC;
-  printf("Total time: %f ms\n", cpu_time_used);
+  printf("Total time: %.0f ms\n", cpu_time_used);
   return 0;
 }
