@@ -30,9 +30,9 @@ int inBounds(int x, int y)
 void drawX(unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], int x, int y)
 {
   int thickness = 1;
-  for (int dx = -12; dx <= 12; dx++)
+  for (int dx = -5; dx <= 5; dx++)
   {
-    for (int dy = -12; dy <= 12; dy++)
+    for (int dy = -5; dy <= 5; dy++)
     {
       if (inBounds(x + dx, y + dy))
       {
