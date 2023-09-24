@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include "cbmp.h"
 #include <time.h>
+#include <math.h>
 
 // Declaring the array to store the image (unsigned char = unsigned 8 bit)
 unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
@@ -57,20 +58,7 @@ int frameDetection(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j)
 {
   int clear = 0; // Variable indicating the frame is clear.
   // Set of coordinates for the frame around a picture.
-  int frameMask[52][2] = {{0, 0}, {0, 1}, {0, 2}, {0, 3}, {0, 4}, {0, 5}, {0, 6}, {0, 7}, {0, 8}, {0, 9}, {0, 10}, {0, 11}, {0, 12}, {0, 13},
-                          {1, 0}, {1, 13},
-                          {2, 0}, {2, 13},
-                          {3, 0}, {3, 13},
-                          {4, 0}, {4, 13},
-                          {5, 0}, {5, 13},
-                          {6, 0}, {6, 13},
-                          {7, 0}, {7, 13},
-                          {8, 0}, {8, 13},
-                          {9, 0}, {9, 13},
-                          {10, 0}, {10, 13},
-                          {11, 0}, {11, 13},
-                          {12, 0}, {12, 13},
-                          {13, 0}, {13, 1}, {13, 2}, {13, 3}, {13, 4}, {13, 5}, {13, 6}, {13, 7}, {13, 8}, {13, 9}, {13, 10}, {13, 11}, {13, 12}, {0, 13}};
+  int frameMask[52][2] = {{0, 0}, {0, 1}, {0, 2}, {0, 3}, {0, 4}, {0, 5}, {0, 6}, {0, 7}, {0, 8}, {0, 9}, {0, 10}, {0, 11}, {0, 12}, {0, 13}, {1, 0}, {1, 13}, {2, 0}, {2, 13}, {3, 0}, {3, 13}, {4, 0}, {4, 13}, {5, 0}, {5, 13}, {6, 0}, {6, 13}, {7, 0}, {7, 13}, {8, 0}, {8, 13}, {9, 0}, {9, 13}, {10, 0}, {10, 13}, {11, 0}, {11, 13}, {12, 0}, {12, 13}, {13, 0}, {13, 1}, {13, 2}, {13, 3}, {13, 4}, {13, 5}, {13, 6}, {13, 7}, {13, 8}, {13, 9}, {13, 10}, {13, 11}, {13, 12}, {0, 13}};
   for (int x = 0; x < 52; x++) // Iterate over frame pixels
   {
     if (tmp_image[i + frameMask[x][0]][j + frameMask[x][1]] == 255) // If the frame pixels contain a white pixel.
@@ -130,7 +118,7 @@ int detection(unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned
         {
           count++; // Increment cell counter.
           // printf("Drawin cell: %d\n", count);
-          drawX(image, i + 12, j + 12); // Draw a cross on the detected cell.
+          drawX(image, i + 7, j + 7); // Draw a cross on the detected cell.
           // printf("Erasing cell: %d\n", count);
           erase(tmp_image, i, j); // Clear the area of white pixels.
         }
@@ -141,15 +129,15 @@ int detection(unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned
 }
 
 // Binary threshold method.
-void binary_threshold(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
+void binary_threshold(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int t_opt)
 {
-  int threshold = 90;                  // Initial threshold.
+  // int threshold = 90;                  // Initial threshold.
   for (int i = 0; i <= BMP_WIDTH; i++) // Iterate over columns.
   {
     for (int j = 0; j <= BMP_HEIGTH; j++) // Iterate over rows.
     {
-      tmp_image[i][j] = tmp_image[i][j] <= threshold ? 0 : 255; // Ternary operator: If a pixel intensity is below or equal to
-    }                                                           // threshold, set it to zero, otherwise 255
+      tmp_image[i][j] = tmp_image[i][j] <= t_opt ? 0 : 255; // Ternary operator: If a pixel intensity is below or equal to
+    }                                                       // threshold, set it to zero, otherwise 255
   }
 }
 
@@ -221,6 +209,74 @@ int pixelCheck(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
   return pixels; // Return counted pixels.
 }
 
+int otsu(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
+{
+  int t_opt;                              // Optimal intensity value
+  int hist[256] = {0};                    // Histogram array
+  int numpixels = BMP_WIDTH * BMP_HEIGTH; // Number of pixels
+
+  for (int t = 0; t <= 255; t++) // For each intensity
+  {
+    for (int i = 0; i < BMP_WIDTH; i++) // and for each column
+    {
+      for (int j = 0; j < BMP_HEIGTH; j++) // and for each row
+      {
+        if (tmp_image[i][j] == t) // If said pixel has intensity t
+        {
+          hist[t]++; // Increment intensity in histogram
+        }
+      }
+    }
+  }
+
+  double cdf[256] = {0}; // Commulative distribution functio
+
+  cdf[0] = hist[0] / (numpixels); // First cdf value
+  for (int t = 1; t <= 255; t++)  // For each intensity
+  {
+    cdf[t] = cdf[t - 1] + (double)(hist[t] / numpixels); // Add commulated distribution
+  }
+
+  double var[256] = {0}; // Interclass variance array
+
+  for (int t = 0; t <= 255; t++)
+  {
+    double w0 = 0.1; // Foreground class probability
+    double w1 = 0.1; // Background class probability
+    for (int i = 0; i <= t - 1; i++)
+    {
+      w0 += cdf[i];
+    }
+    for (int i = t; t < 255; t++)
+    {
+      w1 += cdf[i];
+    }
+    double m0 = 0;
+    double m1 = 0;
+    for (int i = 0; i < t - 1; i++)
+    {
+      m0 += i * cdf[i];
+    }
+    m0 /= w0;
+    for (int i = t; i < 255; i++)
+    {
+      m1 += i * cdf[i];
+    }
+    m1 /= w1;
+    var[t] = w0 * w1 * pow(m0 - m1, 2);
+  }
+  double t = 0;
+  for (int i = 0; i <= 255; i++)
+  {
+    if (var[i] > t)
+    {
+      t = var[i];
+      t_opt = i;
+    }
+  }
+  return t_opt;
+}
+
 // Main function
 int main(int argc, char **argv)
 {
@@ -247,8 +303,13 @@ int main(int argc, char **argv)
   // Convert to grey scale
   grey_scale(image, tmp_image);
 
+  int t_opt;
+
+  t_opt = otsu(tmp_image);
+  printf("t_opt: %d\n", t_opt);
   // Apply binary threshold
-  binary_threshold(tmp_image);
+  t_opt = 100;
+  binary_threshold(tmp_image, t_opt);
 
   // Initialise counters for terminal writeout.
   int pixels = 0; // White pixels left in picture.
