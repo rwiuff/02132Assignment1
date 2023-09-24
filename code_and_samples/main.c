@@ -9,6 +9,11 @@
 #include "cbmp.h"
 #include <time.h>
 
+// Declaring the array to store the image (unsigned char = unsigned 8 bit)
+unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
+// unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
+unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH];
+
 // Greyscale conversion
 void grey_scale(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
 {
@@ -68,9 +73,9 @@ int frameDetection(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j)
                           {13, 0}, {13, 1}, {13, 2}, {13, 3}, {13, 4}, {13, 5}, {13, 6}, {13, 7}, {13, 8}, {13, 9}, {13, 10}, {13, 11}, {13, 12}, {0, 13}};
   for (int x = 0; x < 52; x++) // Iterate over frame pixels
   {
-    if (tmp_image[i + frameMask[x][0]][j + frameMask[x][1]] != 255) // If the frame pixels contain a white pixel.
+    if (tmp_image[i + frameMask[x][0]][j + frameMask[x][1]] == 255) // If the frame pixels contain a white pixel.
     {
-      clear = 1; // Indicate frame is clear.
+      clear = 1; // Indicate frame is NOT clear.
       break;     // Break the search.
     }
   }
@@ -119,7 +124,7 @@ int detection(unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned
   {
     for (int j = 0; j < BMP_HEIGTH; j++) // Iterate over picture rows.
     {
-      if (frameDetection(tmp_image, i, j) == 0) // Check if a given frame is clear.
+      if (frameDetection(tmp_image, i, j) != 1) // Check if a given frame is clear.
       {
         if (cellCapture(tmp_image, i, j) == 1) // Check if a clear frame contains a cell.
         {
@@ -128,7 +133,6 @@ int detection(unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned
           drawX(image, i + 12, j + 12); // Draw a cross on the detected cell.
           // printf("Erasing cell: %d\n", count);
           erase(tmp_image, i, j); // Clear the area of white pixels.
-          i += 12;
         }
       }
     }
@@ -167,16 +171,14 @@ void to_rgb(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output
 void erode(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
 {
   unsigned char ErosionMap[BMP_WIDTH][BMP_HEIGTH] = {0};
-  int i;
-  int j;
-  for (i = 1; i <= (BMP_WIDTH - 1); i++)
+  for (int i = 1; i <= (BMP_WIDTH - 1); i++)
   {
     tmp_image[i - 1][0] = 0;
     tmp_image[i - 1][BMP_HEIGTH - 1] = 0;
 
     tmp_image[0][i - 1] = 0;
     tmp_image[BMP_WIDTH][i - 1] = 0;
-    for (j = 1; j <= (BMP_HEIGTH - 1); j++)
+    for (int j = 1; j <= (BMP_HEIGTH - 1); j++)
     {
 
       if (((tmp_image[i - 1][j] == 0 || tmp_image[i + 1][j] == 0) || (tmp_image[i][j + 1] == 0 || tmp_image[i][j - 1] == 0)))
@@ -219,12 +221,6 @@ int pixelCheck(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
   return pixels; // Return counted pixels.
 }
 
-// Declaring the array to store the image (unsigned char = unsigned 8 bit)
-unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
-// unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
-unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH];
-
-// unsigned char test_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
 // Main function
 int main(int argc, char **argv)
 {
@@ -267,8 +263,8 @@ int main(int argc, char **argv)
     erode(tmp_image);                     // Perform erosion.
     count += detection(image, tmp_image); // Detect cells and add to counter.
     step++;                               // Increment step count.
-    // to_rgb(tmp_image, test_image);
-    // write_bitmap(test_image, argv[2]);
+    // to_rgb(tmp_image, image);
+    // write_bitmap(image, argv[2]);
   } while (pixels != 0); // Until no whities are left.
 
   // Convert to output format for testing purposes
