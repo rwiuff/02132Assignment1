@@ -7,11 +7,11 @@ In addition, we also provide an example code (main.c) that loads an image from a
 If you use the terminal, compile and run 'main.c' as follows: 
 
 Linux/Mac:
-- To compile: gcc cbmp.c main.c -o main.out -std=c99
+- To compile: gcc functions.c cbmp.c main.c -o main.out -std=c99
 - To run: ./main.out example.bmp example_inv.bmp
 
 Windows:
-- To compile: gcc cbmp.c main.c -o main.exe -std=c99
+- To compile: gcc functions.c cbmp.c main.c -o main.exe -std=c99
 - To run: main.exe example.bmp example_inv.bmp
 
 The folder 'results_example' provides you with some example images obtained by running the algorithm. 
