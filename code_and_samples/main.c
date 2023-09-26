@@ -91,14 +91,13 @@ int cellCapture(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j)
 // Erase discovered cells
 void erase(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j)
 {
-  for (int k = i; k <= i + 13; k++) // Iterate over cell area columns
+  for (int k = i; k <= i + 20; k++) // Iterate over cell area columns
   {
-    for (int l = j; l <= j + 13; l++) // Iterate over cell area rows
+    for (int l = j; l <= j + 20; l++) // Iterate over cell area rows
     {
       if (inBounds(k, l) == 1)
       {
         tmp_image[k][l] = 0; // Zerorise pixel value.
-        // printf("Deleting pixel (%d,%d)\n", k,l);
       }
     }
   }
@@ -121,6 +120,7 @@ int detection(unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned
           drawX(image, i + 7, j + 7); // Draw a cross on the detected cell.
           // printf("Erasing cell: %d\n", count);
           erase(tmp_image, i, j); // Clear the area of white pixels.
+          // write_bitmap(image, ".\\example_detect.bmp");
         }
       }
     }
@@ -305,10 +305,10 @@ int main(int argc, char **argv)
 
   int t_opt;
 
-  t_opt = otsu(tmp_image);
-  printf("t_opt: %d\n", t_opt);
+  // t_opt = otsu(tmp_image);
+  // printf("t_opt: %d\n", t_opt);
   // Apply binary threshold
-  t_opt = 100;
+  t_opt = 90;
   binary_threshold(tmp_image, t_opt);
 
   // Initialise counters for terminal writeout.
@@ -319,18 +319,22 @@ int main(int argc, char **argv)
   // Do-While loop for erosion and detection.
   do // Do the following:
   {
-    pixels = pixelCheck(tmp_image);       // Count white pixels.
-    printf("Pixels left: %d\n", pixels);  // Print counted whities.
-    erode(tmp_image);                     // Perform erosion.
+    pixels = pixelCheck(tmp_image);      // Count white pixels.
+    // printf("Pixels left: %d\n", pixels); // Print counted whities.
+    erode(tmp_image);                    // Perform erosion.
+    // to_rgb(tmp_image, image);
+    // write_bitmap(image, ".\\example_erode.bmp");
     count += detection(image, tmp_image); // Detect cells and add to counter.
     step++;                               // Increment step count.
     // to_rgb(tmp_image, image);
-    // write_bitmap(image, argv[2]);
+    // write_bitmap(image, ".\\example_step.bmp");
   } while (pixels != 0); // Until no whities are left.
 
   // Convert to output format for testing purposes
+  printf("|------------------------|\n");
+  printf("| Cell Detection Program |\n");
+  printf("|------------------------|\n");
   printf("Steps: %d\n", step);
-  printf("Cell Detection Program\n");
   printf("Total detected cells: %d\n", count);
 
   // Save image to file
