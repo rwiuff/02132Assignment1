@@ -113,12 +113,9 @@ int detection(unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned
             {
                 if (cellCapture(tmp_image, i, j) == 1) // Check if a clear frame contains a cell.
                 {
-                    count++; // Increment cell counter.
-                    // printf("Drawin cell: %d\n", count);
+                    count++;                    // Increment cell counter.
                     drawX(image, i + 7, j + 7); // Draw a cross on the detected cell.
-                    // printf("Erasing cell: %d\n", count);
-                    erase(tmp_image, i, j); // Clear the area of white pixels.
-                                            // write_bitmap(image, ".\\example_detect.bmp");
+                    erase(tmp_image, i, j);     // Clear the area of white pixels.
                 }
             }
         }
