@@ -49,29 +49,31 @@ int main(int argc, char **argv)
   int pixels = 0; // White pixels left in picture.
   int count = 0;  // Counted cells.
   int step = 0;   // Iteration steps.
-
+  int found[350][2] = {{0}};
   // Do-While loop for erosion and detection.
+  printf("|-----------------------------|\n");
+  printf("|   Cell Detection Program    |\n");
+  printf("|-----------------------------|\n");
   do // Do the following:
   {
-    pixels = pixelCheck(tmp_image);       // Count white pixels.
-    erode(tmp_image);                     // Perform erosion.
-    count += detection(image, tmp_image); // Detect cells and add to counter.
-    step++;                               // Increment step count.
-  } while (pixels != 0);                  // Until no whities are left.
+    pixels = pixelCheck(tmp_image);                    // Count white pixels.
+    erode(tmp_image);                                  // Perform erosion.
+    count = detection(image, tmp_image, count, found); // Detect cells and add to counter.
+    step++;                                            // Increment step count.
+  } while (pixels != 0);                               // Until no whities are left.
 
   // Convert to output format for testing purposes
-  printf("|------------------------|\n");
-  printf("| Cell Detection Program |\n");
-  printf("|------------------------|\n");
-  printf("Steps: %d\n", step);
-  printf("Total detected cells: %d\n", count);
-
+  printf("|-----------------------------|\n");
+  printf("| Steps: %d                   |\n", step);
+  printf("| Total detected cells: %3d   |\n", count);
+  printf("|-----------------------------|\n");
   // Save image to file
   write_bitmap(image, argv[2]);
 
-  printf("Done!\n");
+  printf("| Done!                       |\n");
   end = clock();
   cpu_time_used = (end - start) * 1000.0 / CLOCKS_PER_SEC;
-  printf("Total time: %.0f ms\n", cpu_time_used);
+  printf("| Total time: %.0f ms         |\n", cpu_time_used);
+  printf("|-----------------------------|\n");
   return 0;
 }

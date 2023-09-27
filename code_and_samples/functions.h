@@ -23,7 +23,7 @@ int pixelCheck(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH]);
 int inBounds(int x, int y);
 
 // Detection method
-int detection(unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH]);
+int detection(unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int count, int found[350][2]);
 
 // Detection of pixels in detection frame
 int frameDetection(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j);

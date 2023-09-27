@@ -1,5 +1,6 @@
 #include "functions.h"
 #include "cbmp.h"
+#include <stdio.h>
 
 // Greyscale conversion
 void grey_scale(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
@@ -102,9 +103,8 @@ int inBounds(int x, int y)
 }
 
 // Detection method
-int detection(unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
+int detection(unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int count, int found[350][2])
 {
-    int count = 0;                      // Cell counter.
     for (int i = 0; i < BMP_WIDTH; i++) // Iterate over picture columns.
     {
         for (int j = 0; j < BMP_HEIGTH; j++) // Iterate over picture rows.
@@ -116,6 +116,7 @@ int detection(unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned
                     count++;                    // Increment cell counter.
                     drawX(image, i + 7, j + 7); // Draw a cross on the detected cell.
                     erase(tmp_image, i, j);     // Clear the area of white pixels.
+                    printf("| Cell %3d found at (%3d,%3d) |\n", count, i, j);
                 }
             }
         }
