@@ -56,11 +56,11 @@ int main(int argc, char **argv)
   // Do-While loop for erosion and detection.
   do // Do the following:
   {
-    pixels = pixelCheck(tmp_image);                          // Count white pixels.
+    //pixels = pixelCheck(tmp_image);                          // Count white pixels.
     erode(tmp_image);                                        // Perform erosion.
-    count = detection(image, tmp_image, count, captureSize); // Detect cells and add to counter.
+    count = detection(image, tmp_image); // Detect cells and add to counter.
     step++;                                                  // Increment step count.
-  } while (pixels != 0);                                     // Until no whities are left.
+  } while (step!=5);                                     // Until no whities are left.
 
   // Convert to output format for testing purposes
   printf("|-----------------------------|\n");
