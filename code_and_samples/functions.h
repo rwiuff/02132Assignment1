@@ -23,18 +23,18 @@ int pixelCheck(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH]);
 int inBounds(int x, int y);
 
 // Detection method
-int detection(unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int count, int found[350][2]);
+int detection(unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int count, int captureSize);
 
 // Detection of pixels in detection frame
-int frameDetection(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j);
+int frameDetection(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j, int captureSize);
 
 // Detection of pixels in capture area.
-int cellCapture(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j);
+int cellCapture(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j, int captureSize);
 
 // Draw crosses on cells
 void drawX(unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], int x, int y);
 
 // Erase discovered cells
-void erase(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j);
+void erase(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j, int captureSize);
 
 #endif

@@ -103,19 +103,19 @@ int inBounds(int x, int y)
 }
 
 // Detection method
-int detection(unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int count, int found[350][2])
+int detection(unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int count, int captureSize)
 {
     for (int i = 0; i < BMP_WIDTH; i++) // Iterate over picture columns.
     {
         for (int j = 0; j < BMP_HEIGTH; j++) // Iterate over picture rows.
         {
-            if (frameDetection(tmp_image, i, j) != 1) // Check if a given frame is clear.
+            if (frameDetection(tmp_image, i, j, captureSize) != 1) // Check if a given frame is clear.
             {
-                if (cellCapture(tmp_image, i, j) == 1) // Check if a clear frame contains a cell.
+                if (cellCapture(tmp_image, i, j, captureSize) == 1) // Check if a clear frame contains a cell.
                 {
-                    count++;                    // Increment cell counter.
-                    drawX(image, i + 7, j + 7); // Draw a cross on the detected cell.
-                    erase(tmp_image, i, j);     // Clear the area of white pixels.
+                    count++;                             // Increment cell counter.
+                    drawX(image, i + 7, j + 7);          // Draw a cross on the detected cell.
+                    erase(tmp_image, i, j, captureSize); // Clear the area of white pixels.
                     printf("| Cell %3d found at (%3d,%3d) |\n", count, i, j);
                 }
             }
@@ -125,30 +125,47 @@ int detection(unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned
 }
 
 // Detection of pixels in detection frame
-int frameDetection(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j)
+int frameDetection(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j, int captureSize)
 {
     int clear = 0; // Variable indicating the frame is clear.
     // Set of coordinates for the frame around a picture.
-    int frameMask[52][2] = {{0, 0}, {0, 1}, {0, 2}, {0, 3}, {0, 4}, {0, 5}, {0, 6}, {0, 7}, {0, 8}, {0, 9}, {0, 10}, {0, 11}, {0, 12}, {0, 13}, {1, 0}, {1, 13}, {2, 0}, {2, 13}, {3, 0}, {3, 13}, {4, 0}, {4, 13}, {5, 0}, {5, 13}, {6, 0}, {6, 13}, {7, 0}, {7, 13}, {8, 0}, {8, 13}, {9, 0}, {9, 13}, {10, 0}, {10, 13}, {11, 0}, {11, 13}, {12, 0}, {12, 13}, {13, 0}, {13, 1}, {13, 2}, {13, 3}, {13, 4}, {13, 5}, {13, 6}, {13, 7}, {13, 8}, {13, 9}, {13, 10}, {13, 11}, {13, 12}, {0, 13}};
-    for (int x = 0; x < 52; x++) // Iterate over frame pixels
+    // int frameMask[52][2] = {{0, 0}, {0, 1}, {0, 2}, {0, 3}, {0, 4}, {0, 5}, {0, 6}, {0, 7}, {0, 8}, {0, 9}, {0, 10}, {0, 11}, {0, 12}, {0, 13}, {1, 0}, {1, 13}, {2, 0}, {2, 13}, {3, 0}, {3, 13}, {4, 0}, {4, 13}, {5, 0}, {5, 13}, {6, 0}, {6, 13}, {7, 0}, {7, 13}, {8, 0}, {8, 13}, {9, 0}, {9, 13}, {10, 0}, {10, 13}, {11, 0}, {11, 13}, {12, 0}, {12, 13}, {13, 0}, {13, 1}, {13, 2}, {13, 3}, {13, 4}, {13, 5}, {13, 6}, {13, 7}, {13, 8}, {13, 9}, {13, 10}, {13, 11}, {13, 12}, {0, 13}};
+    // for (int x = 0; x < 52; x++) // Iterate over frame pixels
+    // {
+    //     if (tmp_image[i + frameMask[x][0]][j + frameMask[x][1]] == 255) // If the frame pixels contain a white pixel.
+    //     {
+    //         clear++; // Indicate frame is NOT clear.
+    //         break;     // Break the search.
+    //     }
+    // }
+    for (int x = i; x <= i + captureSize + 1; x++)
     {
-        if (tmp_image[i + frameMask[x][0]][j + frameMask[x][1]] == 255) // If the frame pixels contain a white pixel.
+        if (tmp_image[x][j] == 255 || tmp_image[x][j + captureSize + 1] == 255)
         {
-            clear = 1; // Indicate frame is NOT clear.
-            break;     // Break the search.
+            clear++;
+            break;
         }
     }
+    for (int x = j; x <= j + captureSize + 1; x++)
+    {
+        if (tmp_image[i][x] == 255 || tmp_image[i + captureSize + 1][x] == 255)
+        {
+            clear++;
+            break;
+        }
+    }
+    clear = (clear >= 1) ? 1 : 0;
     return clear;
 }
 
 // Detection of pixels in capture area.
-int cellCapture(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j)
+int cellCapture(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j, int captureSize)
 {
     int detected = 0; // Variable indicating contents in capture area.
 
-    for (int k = i + 1; k <= i + 12; k++) // Iterate within cell area columns.
+    for (int k = i + 1; k <= i + captureSize; k++) // Iterate within cell area columns.
     {
-        for (int l = j + 1; l <= j + 12; l++) // Iterate within cell area rows.
+        for (int l = j + 1; l <= j + captureSize; l++) // Iterate within cell area rows.
         {
             if (tmp_image[k][l] == 255) // If a white pixel exists.
             {
@@ -181,11 +198,11 @@ void drawX(unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], int x, int 
 }
 
 // Erase discovered cells
-void erase(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j)
+void erase(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j, int captureSize)
 {
-    for (int k = i; k <= i + 20; k++) // Iterate over cell area columns
+    for (int k = i; k <= i + captureSize; k++) // Iterate over cell area columns
     {
-        for (int l = j; l <= j + 20; l++) // Iterate over cell area rows
+        for (int l = j; l <= j + captureSize; l++) // Iterate over cell area rows
         {
             if (inBounds(k, l) == 1)
             {
