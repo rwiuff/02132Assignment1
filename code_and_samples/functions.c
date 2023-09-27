@@ -127,34 +127,24 @@ int detection(unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned
 // Detection of pixels in detection frame
 int frameDetection(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j, int captureSize)
 {
-    int clear = 0; // Variable indicating the frame is clear.
-    // Set of coordinates for the frame around a picture.
-    // int frameMask[52][2] = {{0, 0}, {0, 1}, {0, 2}, {0, 3}, {0, 4}, {0, 5}, {0, 6}, {0, 7}, {0, 8}, {0, 9}, {0, 10}, {0, 11}, {0, 12}, {0, 13}, {1, 0}, {1, 13}, {2, 0}, {2, 13}, {3, 0}, {3, 13}, {4, 0}, {4, 13}, {5, 0}, {5, 13}, {6, 0}, {6, 13}, {7, 0}, {7, 13}, {8, 0}, {8, 13}, {9, 0}, {9, 13}, {10, 0}, {10, 13}, {11, 0}, {11, 13}, {12, 0}, {12, 13}, {13, 0}, {13, 1}, {13, 2}, {13, 3}, {13, 4}, {13, 5}, {13, 6}, {13, 7}, {13, 8}, {13, 9}, {13, 10}, {13, 11}, {13, 12}, {0, 13}};
-    // for (int x = 0; x < 52; x++) // Iterate over frame pixels
-    // {
-    //     if (tmp_image[i + frameMask[x][0]][j + frameMask[x][1]] == 255) // If the frame pixels contain a white pixel.
-    //     {
-    //         clear++; // Indicate frame is NOT clear.
-    //         break;     // Break the search.
-    //     }
-    // }
-    for (int x = i; x <= i + captureSize + 1; x++)
+    int clear = 0;                                 // Variable indicating the frame is clear.
+    for (int x = i; x <= i + captureSize + 1; x++) // Iterate over frame columns
     {
-        if (tmp_image[x][j] == 255 || tmp_image[x][j + captureSize + 1] == 255)
+        if (tmp_image[x][j] == 255 || tmp_image[x][j + captureSize + 1] == 255) // Check first and last column
         {
             clear++;
             break;
         }
     }
-    for (int x = j; x <= j + captureSize + 1; x++)
+    for (int x = j; x <= j + captureSize + 1; x++) // Iterate over frame rows
     {
-        if (tmp_image[i][x] == 255 || tmp_image[i + captureSize + 1][x] == 255)
+        if (tmp_image[i][x] == 255 || tmp_image[i + captureSize + 1][x] == 255) // Check first and last row
         {
             clear++;
             break;
         }
     }
-    clear = (clear >= 1) ? 1 : 0;
+    clear = (clear >= 1) ? 1 : 0; // Convert detections into 1 for white pixels detected or 0
     return clear;
 }
 
