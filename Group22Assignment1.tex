@@ -198,24 +198,88 @@ Explain here who has done what, for both implementation and report.
         Name                 & Implementation tasks                              & Report tasks                                     \\
         \midrule
         Mikkel Arn Andersen  & Erosion, Detection optimisation                   &                                                  \\
-        Niclas Juul Schæffer & Detection, Detection optimisatioon                &                                                  \\
-        Rasmus Wiuff         & Program structure, Detection, Memory Optimisation & \cref{sec:design,sec:implementation,sec:poftest} \\
+        Niclas Juul Schæffer & Detection, Detection optimisation                 &                                                  \\
+        Rasmus Wiuff         & Program structure, Detection, Memory Optimisation & \cref{sec:design,sec:implementation,sec:poctest} \\
         \bottomrule
     \end{tabular}
 \end{table}
 \section{Design}\label{sec:design}
-Explain here what the design process was. Explain how you structured your code (e.g., divide functionality into functions, decide the functions prototypes, etc.). Explain how you decide to represent and store data (e.g., what representation, what buffers to use, etc.). Motivate the design decision you made.
+\subsection{Datastructures}
+There are two kinds of information needed in the program. Incrementers of various sorts for counting and keeping checks on processes. These are mainly of type \texttt{int} as these behave neatly for integer counting, even though they have a larger drain on memory. For storing the image there exists two arrays: One for the original 3-channel image (provided by \texttt{cbmp.c}) as well as a flattened grey scale array: \texttt{unsigned char tmp\_image[BMP\_WIDTH][BMP\_HEIGTH]}.
+This is practical as only one conversion is needed to produce a grey scale array, as opposed to convert back and forth before saving. The original image array is only edited when a loocation is marked with a cross. The temporary array is used in all other calculations and changes at every step in the process. Another good reason for usin array is the fact that C always pass them by-reference to functions, meaning no copying is needed when mutating the original arrays.
+\subsection{Program structure}
+Firstly the image needed to be converted into an array with the provided function. Another function deals with flattening the array by averaging the 3 channels into one. Hereafter the program follows the provided algorithmic structure. A function applies a binary threshold onto the array. A do-while loop checks if any white pixels are left. As long as that is not the case a round of erosion is made using a seperate function. Hereafter a detection function does the following:
+\begin{enumerate}
+    \item Iterate over pixels
+    \item Use a function to check if there is a valid cell
+    \item Increment a counter and draw a cross on the original image array using another function
+    \item Erase the captured cell area (set intensity to nought)
+    \item Print information about the location to the console
+\end{enumerate}
+Then the while loop repeats until no pixels are left.
+\textit{Explain here what the design process was. Explain how you structured your code (e.g., divide functionality into functions, decide the functions prototypes, etc.). Explain how you decide to represent and store data (e.g., what representation, what buffers to use, etc.). Motivate the design decision you made.
+    Lastly the main method prints information about runningtime, counted cells, etc.
+    \cref{tbl:func} shows functions and functionality.}
+\begin{table}
+    \centering
+    \caption{Functions and their division of labour}\label{tbl:func}
+    \begin{tabular}{lll}
+        \toprule
+        Step & Function         & Effect                                               \\
+        \midrule
+        0    & read\_bitmap     & Imports bitmap as a three dimensional array          \\
+        1    & Greyscaling      & Populates two dimensional array with greyscale image \\
+        2    & Binary threshold & Applies a binary threshold on the greyscale image    \\
+        3a   & Pixel check      & Check for white pixels                               \\
+        3b   & Erosion          & Erodes image using erosion element                   \\
+        3c   & Detection        & Run detection routine                                \\
+        3c1  & Draw             & Draw cross on original array                         \\
+        3c3  & Erase            & Erase area with detected cell                        \\
+        4    & write\_bitmap    & Exports image array as bitmap                        \\
+        \bottomrule
+    \end{tabular}
+\end{table}
 \section{Implementation}\label{sec:implementation}
-Briefly discuss the implementation in C of your design. Explain how you have exploited the C language in the context of embedded system to implement the algorithm. You can include some code snippets if these are relevant to explain certain aspects of the implementation.
+\textit{Briefly discuss the implementation in C of your design. Explain how you have exploited the C language in the context of embedded system to implement the algorithm. You can include some code snippets if these are relevant to explain certain aspects of the implementation.}
 \section{Optimizations and enhancements}
-Explain here the optimizations and enhancements you have implemented in order to improve cell detection rate, execution time, memory use, and/or other algorithm characteristics you considered relevant. Explain what was the motivation (thinking-process) behind the optimizations and enhancements you implemented.
+\subsection{Otsu's method}
+Otsu's method was extensively looked into in order to get an automated optimal intensity for the binary threshold. Following was discovered:
+\begin{itemize}
+    \item Otsu's method works best if two distinct classes of intensity exists, i.e. two distinct peaks in a intensity histogram over the image.
+    \item Most pictures in the set does not contain two distinct peaks.
+    \item Existing implementations where tried to find optimal intensities (\href{https://rdrr.io/bioc/EBImage/}{EBI package for R}, \href{https://opencv.org/}{OpenCV (using Python)}). These tools pointed to intensities way higher than empirically studied values (115-150 agains the provided 90 or tested 80-110).
+\end{itemize}
+A way of overcomming the problem could be through local thresholding, where ranges of intensities are left out, however time was already wasted on this rather time consuming endeavour.\newline
+\textit{Explain here the optimizations and enhancements you have implemented in order to improve cell detection rate, execution time, memory use, and/or other algorithm characteristics you considered relevant. Explain what was the motivation (thinking-process) behind the optimizations and enhancements you implemented.}
 \section{Test and analysis}
-\subsection{Proof of concept version}\label{sec:poftest}
-Report here the results from the test and analysis you have carried out according to the assignment instructions.  You need to at least address the following: functionality tests, execution time analysis, memory use analysis.
-For each optimization/enhancements you implement, you need to perform tests to prove its validity. If you have implemented optimization/enhancements which do not give the expected benefits, describe why it does not work.
-Remember to discuss the results from the test and analysis you have carried out, do not just present them, but explain and argue their meaning.
+\subsection{Proof of concept version}\label{sec:poctest}
+This section will discuss the non-optimised version of the program.
+\subsubsection{Functionality tests}
+\cref{tbl:pocfunc} shows an overwiev over detection on the various images.
+\begin{table}
+    \centering
+    \caption{Functionality test on provided images. \faCheck \ indicates 300 cells accounted for. \faClose \ indicates otherwise.}\label{tbl:pocfunc}
+    \begin{tabular}{rcccc}
+           & Easy     & Medium   & Hard     & Impossible \\
+        1  & \faCheck & \faClose & \faClose & \faClose   \\
+        2  & \faClose & \faClose & \faClose & \faClose   \\
+        3  & \faCheck & \faClose & \faClose & \faClose   \\
+        4  & \faClose & \faClose & \faClose & \faClose   \\
+        5  & \faClose & \faClose & \faClose & \faClose   \\
+        6  & \faClose & \faClose & \faClose & N/A        \\
+        7  & \faClose & \faClose & \faClose & N/A        \\
+        8  & \faCheck & \faClose & \faClose & N/A        \\
+        9  & \faClose & \faClose & \faClose & N/A        \\
+        10 & \faClose & \faClose & \faClose & N/A        \\
+    \end{tabular}
+\end{table}
+\subsubsection{Execution time analysis}
+\subsubsection{Memory use analysis}
+\textit{Report here the results from the test and analysis you have carried out according to the assignment instructions.  You need to at least address the following: functionality tests, execution time analysis, memory use analysis.
+    For each optimization/enhancements you implement, you need to perform tests to prove its validity. If you have implemented optimization/enhancements which do not give the expected benefits, describe why it does not work.
+    Remember to discuss the results from the test and analysis you have carried out, do not just present them, but explain and argue their meaning.}
 \section{References}
-List here the references that you have used (if any) It can be articles or websites where you have found inspiration and understanding.
+\textit{List here the references that you have used (if any) It can be articles or websites where you have found inspiration and understanding.}
 %Bibliography herunder:
 %\newpage
 
