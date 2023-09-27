@@ -50,7 +50,7 @@ int main(int argc, char **argv)
   int count = 0;  // Counted cells.
   int step = 0;   // Iteration steps.
   int captureSize = 12;
-  printf("|-----------------------------|\n");
+  printf("#-----------------------------#\n");
   printf("|   Cell Detection Program    |\n");
   printf("|-----------------------------|\n");
   // Do-While loop for erosion and detection.
@@ -64,7 +64,9 @@ int main(int argc, char **argv)
 
   // Convert to output format for testing purposes
   printf("|-----------------------------|\n");
-  printf("| Steps: %3d                  |\n", step);
+  printf("| Erosion and detection       |\n");
+  printf("| iterations: %3d             |\n", step);
+  printf("|                             |\n");
   printf("| Total detected cells: %3d   |\n", count);
   printf("|-----------------------------|\n");
   // Save image to file
@@ -74,6 +76,6 @@ int main(int argc, char **argv)
   end = clock();
   cpu_time_used = (end - start) * 1000.0 / CLOCKS_PER_SEC;
   printf("| Total time: %.0f ms         |\n", cpu_time_used);
-  printf("|-----------------------------|\n");
+  printf("#-----------------------------#\n");
   return 0;
 }
