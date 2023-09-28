@@ -195,17 +195,17 @@ Explain here who has done what, for both implementation and report.
     \caption{Work distribution on the project}\label{tbl:ansvar}
     \begin{tabular}{lll}
         \toprule
-        Name                 & Implementation tasks                              & Report tasks                                     \\
+        Name                 & Implementation tasks                                 & Report tasks                                      \\
         \midrule
-        Mikkel Arn Andersen  & Erosion, Detection optimisation                   &                                                  \\
-        Niclas Juul Schæffer & Detection, Detection optimisation                 &                                                  \\
-        Rasmus Wiuff         & Program structure, Detection, Memory Optimisation & \cref{sec:design,sec:implementation,sec:poctest} \\
+        Mikkel Arn Andersen  & Erosion, Detection optimisation                      &                                                   \\
+        Niclas Juul Schæffer & Detection, Detection optimisation                    &                                                   \\
+        Rasmus Wiuff         & Program structure, Detection, Detection area control & \cref{sec:design,sec:otsu,sec:detect,sec:poctest} \\
         \bottomrule
     \end{tabular}
 \end{table}
 \section{Design}\label{sec:design}
 \subsection{Datastructures}
-There are two kinds of information needed in the program. Incrementers of various sorts for counting and keeping checks on processes. These are mainly of type \texttt{int} as these behave neatly for integer counting, even though they have a larger drain on memory. For storing the image there exists two arrays: One for the original 3-channel image (provided by \texttt{cbmp.c}) as well as a flattened grey scale array: \texttt{unsigned char tmp\_image[BMP\_WIDTH][BMP\_HEIGTH]}.
+There are two kinds of information needed in the program. Incrementers of various sorts for counting and keeping checks on processes. These are mainly of type \texttt{int} as these behave neatly for integer counting, even though they have a larger drain on memory. For storing the image there exists two arrays: One for the original 3-channel image (provided by \texttt{cbmp.c}) as well as a grey scale array: \texttt{unsigned char tmp\_image[BMP\_WIDTH][BMP\_HEIGTH]}.
 This is practical as only one conversion is needed to produce a grey scale array, as opposed to convert back and forth before saving. The original image array is only edited when a loocation is marked with a cross. The temporary array is used in all other calculations and changes at every step in the process. Another good reason for usin array is the fact that C always pass them by-reference to functions, meaning no copying is needed when mutating the original arrays.
 \subsection{Program structure}
 Firstly the image needed to be converted into an array with the provided function. Another function deals with flattening the array by averaging the 3 channels into one. Hereafter the program follows the provided algorithmic structure. A function applies a binary threshold onto the array. A do-while loop checks if any white pixels are left. As long as that is not the case a round of erosion is made using a seperate function. Hereafter a detection function does the following:
@@ -222,7 +222,7 @@ Then the while loop repeats until no pixels are left.
     \cref{tbl:func} shows functions and functionality.}
 \begin{table}
     \centering
-    \caption{Functions and their division of labour}\label{tbl:func}
+    \caption{Functions and their scope}\label{tbl:func}
     \begin{tabular}{lll}
         \toprule
         Step & Function         & Effect                                               \\
@@ -234,7 +234,7 @@ Then the while loop repeats until no pixels are left.
         3b   & Erosion          & Erodes image using erosion element                   \\
         3c   & Detection        & Run detection routine                                \\
         3c1  & Draw             & Draw cross on original array                         \\
-        3c3  & Erase            & Erase area with detected cell                        \\
+        3c2  & Erase            & Erase area with detected cell                        \\
         4    & write\_bitmap    & Exports image array as bitmap                        \\
         \bottomrule
     \end{tabular}
@@ -242,7 +242,7 @@ Then the while loop repeats until no pixels are left.
 \section{Implementation}\label{sec:implementation}
 \textit{Briefly discuss the implementation in C of your design. Explain how you have exploited the C language in the context of embedded system to implement the algorithm. You can include some code snippets if these are relevant to explain certain aspects of the implementation.}
 \section{Optimizations and enhancements}
-\subsection{Otsu's method}
+\subsection{Otsu's method}\label{sec:otsu}
 Otsu's method was extensively looked into in order to get an automated optimal intensity for the binary threshold. Following was discovered:
 \begin{itemize}
     \item Otsu's method works best if two distinct classes of intensity exists, i.e. two distinct peaks in a intensity histogram over the image.
@@ -251,6 +251,8 @@ Otsu's method was extensively looked into in order to get an automated optimal i
 \end{itemize}
 A way of overcomming the problem could be through local thresholding, where ranges of intensities are left out, however time was already wasted on this rather time consuming endeavour.\newline
 \textit{Explain here the optimizations and enhancements you have implemented in order to improve cell detection rate, execution time, memory use, and/or other algorithm characteristics you considered relevant. Explain what was the motivation (thinking-process) behind the optimizations and enhancements you implemented.}
+\subsection{Size of detection area}\label{sec:detect}
+There are two ways of changing the granularity in the search for cells. One can either change the erosion element or one can increase/decrease the size of the detection area. In here the later is discussed. The idea is that cells will need to be much smaller and therefore disconnected from neighbouring cells, adressing the issue of connected cells being counted as one. Practically the implementation is passing a variable to detection functions and use the variable to constrain search and exclusion indices. The smaller the detection area, the more erosion rounds are needed and therefore runtime is increased.
 \section{Test and analysis}
 \subsection{Proof of concept version}\label{sec:poctest}
 This section will discuss the non-optimised version of the program.
@@ -274,14 +276,15 @@ This section will discuss the non-optimised version of the program.
     \end{tabular}
 \end{table}
 \subsubsection{Execution time analysis}
-we are using a imported the tool "time.h" to track the time used in the program. where we set a start and end value of clock types. and then we can calculate the time spent in the program my subtract those values, and times 1000 divided my a value called CLOCKS\textunderscore PER\textunderscore SEC that are set in the time.h header file.  That way to will find the time in miliseconds. 
-
+We are using a imported the tool "time.h" to track the time used in the program, where we set a start and end value of clock types. We can then calculate the time spent in the program by subtracting those values, multiply by a thousand and divide with the value called CLOCKS\_ PER\_ SEC that are set in the time.h header file. This produces the runtime in milliseconds.\newline
+Most functions on the greyscale image array iterates on one axis while iterating the other in a nested loop. If cells are found a small nested for loop is performed in the capture area and therefore considered negligeble. To save time, whenever a cell is found it is removed. Therefore the number of erosion and detection iterations depends highly on how quickly cells erode to a detectable size.
+Runtime is estimated as \(O(n^2)\), for an image of size \(n\times n\).
 \subsubsection{Memory use analysis}
 \textit{Report here the results from the test and analysis you have carried out according to the assignment instructions.  You need to at least address the following: functionality tests, execution time analysis, memory use analysis.
     For each optimization/enhancements you implement, you need to perform tests to prove its validity. If you have implemented optimization/enhancements which do not give the expected benefits, describe why it does not work.
     Remember to discuss the results from the test and analysis you have carried out, do not just present them, but explain and argue their meaning.}
-\section{References}
-\textit{List here the references that you have used (if any) It can be articles or websites where you have found inspiration and understanding.}
+% \section{References}
+% \textit{List here the references that you have used (if any) It can be articles or websites where you have found inspiration and understanding.}
 %Bibliography herunder:
 %\newpage
 
