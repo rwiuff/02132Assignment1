@@ -278,8 +278,18 @@ This section will discuss the non-optimised version of the program.
 \subsubsection{Execution time analysis}
 We are using a imported the tool "time.h" to track the time used in the program, where we set a start and end value of clock types. We can then calculate the time spent in the program by subtracting those values, multiply by a thousand and divide with the value called CLOCKS\_ PER\_ SEC that are set in the time.h header file. This produces the runtime in milliseconds.\newline
 Most functions on the greyscale image array iterates on one axis while iterating the other in a nested loop. If cells are found a small nested for loop is performed in the capture area and therefore considered negligeble. To save time, whenever a cell is found it is removed. Therefore the number of erosion and detection iterations depends highly on how quickly cells erode to a detectable size.
-Runtime is estimated as \(O(n^2)\), for an image of size \(n\times n\).
+Runtime is estimated as \(O(n^2)\) for an image of size \(n\times n\).
 \subsubsection{Memory use analysis}
+Two arrays are consisten throughout the program. The arrays have sizes:
+\begin{align}
+    \text{image\_array} \  & = n \cdot n \cdot 3 \cdot \SI{8}{\bit} = n^2 \cdot \SI{24}{\bit} \\
+    \text{tmp\_array} \    & = n \cdot n \cdot \SI{8}{\bit} = n^2 \cdot \SI{8}{\bit}
+\end{align}
+For the 950 \(\times\) 950 pixel image this means the sum of memory allocated for the images is
+\begin{align}
+    950^2 \cdot \SI{24}{\bit} + 950^2 \cdot \SI{8}{\bit} \approx \SI{3.61}{\mega\byte}
+\end{align}
+The memory is depending on the arrays and as such uses \(O(n^2)\) space for an image of size \(n\times n\).
 \textit{Report here the results from the test and analysis you have carried out according to the assignment instructions.  You need to at least address the following: functionality tests, execution time analysis, memory use analysis.
     For each optimization/enhancements you implement, you need to perform tests to prove its validity. If you have implemented optimization/enhancements which do not give the expected benefits, describe why it does not work.
     Remember to discuss the results from the test and analysis you have carried out, do not just present them, but explain and argue their meaning.}
