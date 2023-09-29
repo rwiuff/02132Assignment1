@@ -42,7 +42,8 @@ int main(int argc, char **argv)
   grey_scale(image, tmp_image);
 
   // Apply binary threshold
-  int t_opt = 90;
+
+  int t_opt=90;
   binary_threshold(tmp_image, t_opt);
 
   // Initialise counters for terminal writeout.
@@ -58,16 +59,17 @@ int main(int argc, char **argv)
   {
     //pixels = pixelCheck(tmp_image);                          // Count white pixels.
     erode(tmp_image);                                        // Perform erosion.
-    count = detection(image, tmp_image); // Detect cells and add to counter.
+    //count = detection(image, tmp_image); // Detect cells and add to counter.
     step++;                                                  // Increment step count.
-  } while (step!=5);                                     // Until no whities are left.
-
+  } while (step!=20);                                     // Until no whities are left.
+  count = detection(tmp_image);
   // Convert to output format for testing purposes
   printf("|-----------------------------|\n");
   printf("| Steps: %3d                  |\n", step);
   printf("| Total detected cells: %3d   |\n", count);
   printf("|-----------------------------|\n");
   // Save image to file
+  to_rgb(tmp_image,image);
   write_bitmap(image, argv[2]);
 
   printf("| Done!                       |\n");
@@ -77,3 +79,4 @@ int main(int argc, char **argv)
   printf("|-----------------------------|\n");
   return 0;
 }
+
