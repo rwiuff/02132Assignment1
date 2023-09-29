@@ -11,13 +11,14 @@ void grey_scale(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], 
         {
             tmp_image[i][j] = (input_image[i][j][0] + input_image[i][j][1] + input_image[i][j][2]) / 3; // From the 3 input channels of a given pixel
                                                                                                         // Take the average of the colours and put into array.
+                                                                                                    
         }
     }
 }
 
-// Binary threshold method.
 void binary_threshold(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int t_opt)
-{
+{	
+	
     // int threshold = 90;                  // Initial threshold.
     for (int i = 0; i <= BMP_WIDTH; i++) // Iterate over columns.
     {
@@ -56,7 +57,7 @@ void erode(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
         for (int j = 1; j <= (BMP_HEIGTH - 1); j++)
         {
             
-            if (((tmp_image[i - 1][j] == 0 || tmp_image[i + 1][j] == 0) || (tmp_image[i][j + 1] == 0 || tmp_image[i][j - 1] == 0)))
+            if ((tmp_image[i - 1][j] + tmp_image[i + 1][j] + tmp_image[i][j + 1] + tmp_image[i][j - 1] )<900)
             {
                 ErosionMap[i][j] = 0;
             }
@@ -74,9 +75,41 @@ void erode(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
         {
             if (ErosionMap[o][p] == 0)
             {
-                tmp_image[o][p] = 0;
+				if (tmp_image[o][p] == 255){
+					
+					if ((((tmp_image[o - 1][p] == 0 && tmp_image[o + 1][p] == 0) && (tmp_image[o][p + 1] == 0 && tmp_image[o][p - 1] == 0)) 
+					&& ((tmp_image[o - 1][p+1] == 0 && tmp_image[o + 1][p+1] == 0) && (tmp_image[o - 1][p-1] == 0 && tmp_image[o + 1][p-1] == 0)))&&
+					(((tmp_image[o - 2][p] == 0 && tmp_image[o + 2][p] == 0) && (tmp_image[o][p + 2] == 0 && tmp_image[o][p - 2] == 0)) 
+					&& ((tmp_image[o - 2][p+1] == 0 && tmp_image[o + 2][p+1] == 0) && (tmp_image[o - 2][p-1] == 0 && tmp_image[o + 2][p-1] == 0)))
+					&&
+					(((tmp_image[o - 2][p+2] == 0 && tmp_image[o + 2][p+2] == 0) && (tmp_image[o+1][p + 2] == 0 && tmp_image[o+1][p - 2] == 0)) 
+					&& ((tmp_image[o - 1][p+2] == 0 && tmp_image[o + 2][p-1] == 0) && (tmp_image[o - 2][p-2] == 0 && tmp_image[o - 1][p-2] == 0)))
+					
+					)
+					{
+					tmp_image[o][p] = 255;
+					}
+					
+					else
+					{
+
+					  tmp_image[o][p] = 0;
+					 }
+					
+					}
+				}
             }
         }
+	
+     for (int o = 0; o < BMP_WIDTH; o++)
+    {
+        for (int p = 0; p < BMP_HEIGTH; p++)
+        {
+			if(tmp_image[o][p]==15){
+				tmp_image[o][p] = 0;
+			}
+	
+    }
     }
 }
 
@@ -87,17 +120,17 @@ int inBounds(int x, int y)
 }
 
 // Detection method
-int detection(unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
+int detection(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
 {
     int count = 0;
     for (int i = 0; i < BMP_WIDTH; i++) // Iterate over picture columns.
     {
         for (int j = 0; j < BMP_HEIGTH; j++) // Iterate over picture rows.
         {
-           if(image[i][j][0] == 255) {
+           if(tmp_image[i][j] == 255) {
                 count++;
-                drawX(image, i, j);
-                printf("cell %d found at (%d, %d)", count, i, j);
+                //drawX(image, i, j);
+                //printf("cell %d found at (%d, %d)", count, i, j);
            }
         }
     }
