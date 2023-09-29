@@ -62,14 +62,14 @@ int main(int argc, char **argv)
     //count = detection(image, tmp_image); // Detect cells and add to counter.
     step++;                                                  // Increment step count.
   } while (step!=20);                                     // Until no whities are left.
-  count = detection(tmp_image);
+  count = detection(tmp_image, image);
   // Convert to output format for testing purposes
   printf("|-----------------------------|\n");
   printf("| Steps: %3d                  |\n", step);
   printf("| Total detected cells: %3d   |\n", count);
   printf("|-----------------------------|\n");
   // Save image to file
-  to_rgb(tmp_image,image);
+  //to_rgb(tmp_image,image);
   write_bitmap(image, argv[2]);
 
   printf("| Done!                       |\n");

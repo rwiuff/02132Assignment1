@@ -120,7 +120,7 @@ int inBounds(int x, int y)
 }
 
 // Detection method
-int detection(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
+int detection(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS])
 {
     int count = 0;
     for (int i = 0; i < BMP_WIDTH; i++) // Iterate over picture columns.
@@ -129,8 +129,8 @@ int detection(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH])
         {
            if(tmp_image[i][j] == 255) {
                 count++;
-                //drawX(image, i, j);
-                //printf("cell %d found at (%d, %d)", count, i, j);
+                drawX(image, i, j);
+                printf("| cell %d found at (%d, %d)|\n", count, i, j);
            }
         }
     }

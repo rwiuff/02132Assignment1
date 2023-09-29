@@ -1,5 +1,4 @@
-#ifndef FUNCTIONS_H_
-#ifndef FUNCTIONS_H_
+
 
 #define BMP_WIDTH 950
 #define BMP_HEIGTH 950
@@ -24,7 +23,7 @@ int pixelCheck(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH]);
 int inBounds(int x, int y);
 
 // Detection method
-int detection(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH]);
+int detection(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]);
 
 // Detection of pixels in detection frame
 int frameDetection(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j, int captureSize);
@@ -38,4 +37,3 @@ void drawX(unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], int x, int 
 // Erase discovered cells
 void erase(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int i, int j, int captureSize);
 
-#endif
