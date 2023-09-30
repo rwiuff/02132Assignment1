@@ -14,6 +14,8 @@
 unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
 // unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
 unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH];
+// Start by implying Erosion will cause change to the picture
+unsigned char change=1;
 
 // Main function
 int main(int argc, char **argv)
@@ -43,33 +45,33 @@ int main(int argc, char **argv)
 
   // Apply binary threshold
 
-  int t_opt=90;
+  unsigned char t_opt=90;
   binary_threshold(tmp_image, t_opt);
 
   // Initialise counters for terminal writeout.
-  int pixels = 0; // White pixels left in picture.
   int count = 0;  // Counted cells.
-  int step = 0;   // Iteration steps.
-  int captureSize = 12;
+  unsigned char step = 0;   // Iteration steps.
   printf("|-----------------------------|\n");
   printf("|   Cell Detection Program    |\n");
   printf("|-----------------------------|\n");
-  // Do-While loop for erosion and detection.
+  // Do-While loop for erosion
   do // Do the following:
   {
-    //pixels = pixelCheck(tmp_image);                          // Count white pixels.
-    erode(tmp_image);                                        // Perform erosion.
-    //count = detection(image, tmp_image); // Detect cells and add to counter.
-    step++;                                                  // Increment step count.
-  } while (step!=20);                                     // Until no whities are left.
+	step++;
+  // Perform erosion. If returns a 0 because of no changes occured, change var change to 0 to stop the loop
+    if(erode(tmp_image)){}else { change=0; }
+                                     
+    
+          
+                                              // Increment step count.
+  } while (change);                                     // Until no change has occured 
   count = detection(tmp_image, image);
-  // Convert to output format for testing purposes
+  
   printf("|-----------------------------|\n");
   printf("| Steps: %3d                  |\n", step);
   printf("| Total detected cells: %3d   |\n", count);
   printf("|-----------------------------|\n");
   // Save image to file
-  //to_rgb(tmp_image,image);
   write_bitmap(image, argv[2]);
 
   printf("| Done!                       |\n");
@@ -79,4 +81,3 @@ int main(int argc, char **argv)
   printf("|-----------------------------|\n");
   return 0;
 }
-
