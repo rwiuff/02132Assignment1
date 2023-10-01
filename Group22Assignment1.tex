@@ -195,11 +195,11 @@ Explain here who has done what, for both implementation and report.
     \caption{Work distribution on the project}\label{tbl:ansvar}
     \begin{tabular}{lll}
         \toprule
-        Name                 & Implementation tasks                                 & Report tasks                                      \\
+        Name                 & Implementation tasks                                 & Report tasks                                        \\
         \midrule
-        Mikkel Arn Andersen  & Erosion, Detection optimisation                      & \cref{sec:optimised,sec:erosion,sec:optimised}                                                  \\
-        Niclas Juul Schæffer & Detection, Detection optimisation & \cref{sec:implementation,sec:poctest,sec:optimised}   \\
-        Rasmus Wiuff         & Program structure, Detection, Detection area control & \cref{sec:design,sec:otsu,sec:detect,sec:poctest} \\
+        Mikkel Arn Andersen  & Erosion, Detection optimisation                      & \cref{sec:optimised,sec:erosion,sec:optimised}      \\
+        Niclas Juul Schæffer & Detection, Detection optimisation                    & \cref{sec:implementation,sec:poctest,sec:optimised} \\
+        Rasmus Wiuff         & Program structure, Detection, Detection area control & \cref{sec:design,sec:otsu,sec:detect,sec:poctest}   \\
         \bottomrule
     \end{tabular}
 \end{table}
@@ -224,7 +224,7 @@ Lastly the main method prints information about runtime, counted cells, etc. \cr
         Step & Function         & Effect                                               \\
         \midrule
         0    & read\_bitmap     & Imports bitmap as a three dimensional array          \\
-        1    & Grey-scaling      & Populates two dimensional array with greyscale image \\
+        1    & Grey-scaling     & Populates two dimensional array with greyscale image \\
         2    & Binary threshold & Applies a binary threshold on the greyscale image    \\
         3b   & Erosion          & Erodes image using erosion element                   \\
         3a   & Pixel check      & Check for white pixels                               \\
@@ -258,7 +258,7 @@ Our first iteration of the program was quite slow; on the testing machine it too
 \subsection{Memory optimisation}
 We tested and tried changing the data structure and function of our code to package together bits, as after the threshold is applied, we only care whether they are black or white. We packed 8 different coordinates into 1 which reduced the tmp-array down to 950x119, a drastic reduction in byte size, Listing 1 and 2 showing this concept in code snippets. However it was costing a very large development time, leading to an unsuccessful implementation. It also still didn't touch upon the main issue, being the image array, which needs full RGB 0-255 data, which means we don't have any unused bits for the unsigned char coordinates to package together. If we wanted to reduce the size-load of this array, we considered to represent it in another way entirely through processing, or only load part of the image at a time.
 \begin{listing}[H]
-\caption{Greyscale conversion}\label{lst:grey-scale}
+    \caption{Greyscale conversion}\label{lst:grey-scale}
     \begin{minted}[breaklines]{c}
 void grey_scale(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char tmp_image[BMP_HEIGTH][CompressSize])
 {
@@ -281,7 +281,7 @@ void grey_scale(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], 
 \end{minted}
 \end{listing}
 \begin{listing}[H]
-\caption{Erosion method}\label{lst:erosion}
+    \caption{Erosion method}\label{lst:erosion}
     \begin{minted}[breaklines]{c}
 unsigned char erode(unsigned char tmp_image[BMP_HEIGTH][CompressSize])
 {
@@ -316,42 +316,42 @@ This section will discuss the non-optimised version of the program.
     \centering
     \caption{Functionality test on provided images. Percentages are relative to the actual number of 300 cells.}
     \begin{subtable}[t]{.49\textwidth}
-    \centering
-    \caption{Proof of concept implementation}\label{tbl:pocfunc}
-    \begin{tabular}{rccccc}
-           & Easy     & Medium   & Hard     & Impossible \\
-        1  & 100 \%   & 88.3 \% & 87.3 \% & 72.3 \%   \\
-        2  & 99.7 \%  & 88.7 \% & 79.0 \% & 73.7 \%   \\
-        3  & 100 \%   & 88.0 \% & 81.3 \% & 73.0 \%   \\
-        4  & 99.3 \%  & 88.0 \% & 83.0 \% & 72.7 \%   \\
-        5  & 99.0 \%  & 83.0 \% & 85.3 \% & 76.3 \%   \\
-        6  & 99.0 \%  & 92.0 \% & 86.7 \% & N/A        \\
-        7  & 99.3 \%  & 86.7 \% & 86.7 \% & N/A        \\
-        8  & 100 \%   & 82.3 \% & 87.7 \% & N/A        \\
-        9  & 99.7 \%  & 86.0 \% & 87.3 \% & N/A        \\
-        10 & 99.7 \%  & 88.0 \% & 83.0 \% & N/A        \\
+        \centering
+        \caption{Proof of concept implementation}\label{tbl:pocfunc}
+        \begin{tabular}{rccccc}
+               & Easy    & Medium  & Hard    & Impossible \\
+            1  & 100 \%  & 88.3 \% & 87.3 \% & 72.3 \%    \\
+            2  & 99.7 \% & 88.7 \% & 79.0 \% & 73.7 \%    \\
+            3  & 100 \%  & 88.0 \% & 81.3 \% & 73.0 \%    \\
+            4  & 99.3 \% & 88.0 \% & 83.0 \% & 72.7 \%    \\
+            5  & 99.0 \% & 83.0 \% & 85.3 \% & 76.3 \%    \\
+            6  & 99.0 \% & 92.0 \% & 86.7 \% & N/A        \\
+            7  & 99.3 \% & 86.7 \% & 86.7 \% & N/A        \\
+            8  & 100 \%  & 82.3 \% & 87.7 \% & N/A        \\
+            9  & 99.7 \% & 86.0 \% & 87.3 \% & N/A        \\
+            10 & 99.7 \% & 88.0 \% & 83.0 \% & N/A        \\
         \end{tabular}
-        \end{subtable}
-        \hfill
-        \begin{subtable}[t]{.49\textwidth}
+    \end{subtable}
+    \hfill
+    \begin{subtable}[t]{.49\textwidth}
         \centering
         \caption{Optimised implementation}\label{tbl:optfunc}
         \begin{tabular}{rcccc}
-        %Avg full runtime = 387ms
-           & Easy & Medium & Hard & Impossible \\
-        1  & 97.3 \% & 98.7 \% & 95.3 \% & 88.3 \%   \\
-        2  & 97.0 \% & 96.3 \% & 89.3 \% & 86.3\%   \\
-        3  & 96.0 \% & 96.3 \% & 91.0 \% & 87.7\%   \\
-        4  & 96.3 \% & 95.7 \% & 95.3\% & 84.0\%   \\
-        5  & 95.7 \% & 91.3 \% & 99.0\% & 88.0\%   \\
-        6  & 98.0 \% & 99.0 \% & 97.7\% & N/A        \\
-        7  & 96.7 \% & 93.0 \% & 95.3\% & N/A        \\
-        8  & 99.0 \% & 91.0 \% & 96.0\% & N/A        \\
-        9  & 96.3 \% & 93.0 \% & 95.0\% & N/A        \\
-        10 & 95.7 \% & 97.3 \% & 93.3\% & N/A        \\
-    \end{tabular}
+            %Avg full runtime = 387ms
+               & Easy    & Medium  & Hard    & Impossible \\
+            1  & 97.3 \% & 98.7 \% & 95.3 \% & 88.3 \%    \\
+            2  & 97.0 \% & 96.3 \% & 89.3 \% & 86.3\%     \\
+            3  & 96.0 \% & 96.3 \% & 91.0 \% & 87.7\%     \\
+            4  & 96.3 \% & 95.7 \% & 95.3\%  & 84.0\%     \\
+            5  & 95.7 \% & 91.3 \% & 99.0\%  & 88.0\%     \\
+            6  & 98.0 \% & 99.0 \% & 97.7\%  & N/A        \\
+            7  & 96.7 \% & 93.0 \% & 95.3\%  & N/A        \\
+            8  & 99.0 \% & 91.0 \% & 96.0\%  & N/A        \\
+            9  & 96.3 \% & 93.0 \% & 95.0\%  & N/A        \\
+            10 & 95.7 \% & 97.3 \% & 93.3\%  & N/A        \\
+        \end{tabular}
     \end{subtable}
-    \end{table}
+\end{table}
 \subsubsection{Execution time analysis}
 We are using a imported the tool "time.h" to track the time used in the program, where we set a start and end value of clock types. We can then calculate the time spent in the program by subtracting those values, multiply by a thousand and divide with the value called CLOCKS\_ PER\_ SEC that are set in the time.h header file. This produces the runtime in milliseconds.\newline
 Most functions on the grey scale image array iterates on one axis while iterating the other in a nested loop. If cells are found a small nested for loop is performed in the capture area and therefore considered negligible. To save time, whenever a cell is found it is removed. Therefore the number of erosion and detection iterations depends highly on how quickly cells erode to a detectable size.
@@ -372,7 +372,7 @@ The memory is largely depending on the arrays and as such uses \(O(n^2)\) space 
 Here the program version with an optimised erosion and detection algorithm is analysed.
 \subsubsection{Functionality tests} \cref{tbl:optfunc} shows the results of the functionality test using the optimised version. After we tested the newer version and put them up side by side and then we can see it was better in testing overall. It was worse than the other one on easy but was better in the other difficulties. We much prefer this result, as it should be very apt for the task given, a camera picture of real life cells could prove clumps that are fully impossible to prove the amount of cells within from a picture, thusly there should never be a reliance on specifically the program to be correct every time, and it would make more sense to use it as a tool in either calculations or understanding, wherein a 5\% margin of error should suffice quite well.
 \subsubsection{Execution time analysis}
-The final implementation uses a lot less time because we are getting rid of the reading an image multiple times every erosion. Since we got rid of the border frame detection, now the program uses erosion until it has no changes left. Then it will call detection and search for white pixels, because the erosion has left out a single pixel for every cell, this way it's way faster, with an avg time of 387 ms on a poorly equipped laptop. 
+The final implementation uses a lot less time because we are getting rid of the reading an image multiple times every erosion. Since we got rid of the border frame detection, now the program uses erosion until it has no changes left. Then it will call detection and search for white pixels, because the erosion has left out a single pixel for every cell, this way it's way faster, with an avg time of 387 ms on a poorly equipped laptop.
 \subsubsection{Memory use analysis}
 The final implementation uses the same memory as mentioned in \cref{sec:mem}\newline
 This is a large amount of memory required for a micro computer, and will have to cost a small investment. Small computers like the Arduino board Portenta H7\cite{arduino} has sufficient memory therefore a requirement of less than \SI{8}{\mega\byte} seemed a sufficient answer for an immobile micro-scope computer however, Which makes us comfortable with this memory requirement as to not hurt the runtime by reloading and splitting memory.
@@ -380,8 +380,8 @@ This is a large amount of memory required for a micro computer, and will have to
 
 % \section{References}
 \begin{thebibliography}{1}
-\bibitem{arduino}
-Arduino, José Bagur, Taddy Chung \emph{Arduino Memory Guide (19/09/2023)\newline \href{https://docs.arduino.cc/learn/programming/memory-guide}{https://docs.arduino.cc/learn/programming/memory-guide}}
+    \bibitem{arduino}
+    Arduino, José Bagur, Taddy Chung \emph{Arduino Memory Guide (19/09/2023)\newline \href{https://docs.arduino.cc/learn/programming/memory-guide}{https://docs.arduino.cc/learn/programming/memory-guide}}
 \end{thebibliography}
 %Bibliography herunder:
 %\newpage
