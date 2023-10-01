@@ -104,7 +104,7 @@ separate-uncertainty-units = single ,
 \usepackage[newfloat]{minted}
 \setminted{fontsize=\small,
            linenos=true}
-\usemintedstyle{monokai}
+\usemintedstyle{tango}
 \SetupFloatingEnvironment{listing}{listname=Listings}
 \captionsetup[listing]{position=top, skip=-1pt}
 \newcommand{\im}[3]{\inputminted[linenos=true, python3=true, firstline=#2, lastline=#3]{python}{#1}}
@@ -197,29 +197,25 @@ Explain here who has done what, for both implementation and report.
         \toprule
         Name                 & Implementation tasks                                 & Report tasks                                      \\
         \midrule
-        Mikkel Arn Andersen  & Erosion, Detection optimisation                      &                                                   \\
-        Niclas Juul Schæffer & Detection, Detection optimisation                    &                                                   \\
+        Mikkel Arn Andersen  & Erosion, Detection optimisation                      & \cref{sec:optimised,sec:erosion,sec:optimised}                                                  \\
+        Niclas Juul Schæffer & Detection, Detection optimisation & \cref{sec:implementation,sec:poctest,sec:optimised}   \\
         Rasmus Wiuff         & Program structure, Detection, Detection area control & \cref{sec:design,sec:otsu,sec:detect,sec:poctest} \\
         \bottomrule
     \end{tabular}
 \end{table}
 \section{Design}\label{sec:design}
-\subsection{Datastructures}
-There are two kinds of information needed in the program. Incrementers of various sorts for counting and keeping checks on processes. These are mainly of type \texttt{int} as these behave neatly for integer counting, even though they have a larger drain on memory. For storing the image there exists two arrays: One for the original 3-channel image (provided by \texttt{cbmp.c}) as well as a grey scale array: \texttt{unsigned char tmp\_image[BMP\_WIDTH][BMP\_HEIGTH]}.
-This is practical as only one conversion is needed to produce a grey scale array, as opposed to convert back and forth before saving. The original image array is only edited when a loocation is marked with a cross. The temporary array is used in all other calculations and changes at every step in the process. Another good reason for usin array is the fact that C always pass them by-reference to functions, meaning no copying is needed when mutating the original arrays.
+\subsection{Data structures}
+There are two kinds of information needed in the program. Incrementors of various sorts for counting and keeping checks on processes. These are mainly of type \texttt{int} as we need to iterate over 950 pixels per loop, thusly an 8 bit char wont suffice, even though they have a larger drain on memory. For storing the image there exists two arrays: One for the original 3-channel image (provided by \texttt{cbmp.c}) as well as a grey scale array: \texttt{unsigned char tmp\_image[BMP\_WIDTH][BMP\_HEIGTH]}.
+This is practical as only one conversion is needed to produce a grey scale array, as opposed to convert back and forth before saving. The original image array is only edited when a location is marked with a cross. The temporary array is used in all other calculations and changes at every step in the process. Another good reason for using array is the fact that C always pass them by-reference to functions, meaning no copying is needed when mutating the original arrays.
 \subsection{Program structure}
-Firstly the image needed to be converted into an array with the provided function. Another function deals with flattening the array by averaging the 3 channels into one. Hereafter the program follows the provided algorithmic structure. A function applies a binary threshold onto the array. A do-while loop checks if any white pixels are left. As long as that is not the case a round of erosion is made using a seperate function. Hereafter a detection function does the following:
+Firstly the image needed to be converted into an array with the provided function. Another function deals with flattening the array by averaging the 3 channels into one. Hereafter the program follows the provided algorithmic structure. A function applies a binary threshold onto the array. A do-while loop checks if any changes has occured in the previous erosion, or at the start assumes there will be change coming, As long as that is the case a round of erosion is made using a separate function. Hereafter a detection function does the following:
 \begin{enumerate}
     \item Iterate over pixels
     \item Use a function to check if there is a valid cell
     \item Increment a counter and draw a cross on the original image array using another function
-    \item Erase the captured cell area (set intensity to nought)
     \item Print information about the location to the console
 \end{enumerate}
-Then the while loop repeats until no pixels are left.
-\textit{Explain here what the design process was. Explain how you structured your code (e.g., divide functionality into functions, decide the functions prototypes, etc.). Explain how you decide to represent and store data (e.g., what representation, what buffers to use, etc.). Motivate the design decision you made.
-    Lastly the main method prints information about runningtime, counted cells, etc.
-    \cref{tbl:func} shows functions and functionality.}
+Lastly the main method prints information about runtime, counted cells, etc. \cref{tbl:func} shows functions and functionality.
 \begin{table}
     \centering
     \caption{Functions and their scope}\label{tbl:func}
@@ -228,73 +224,165 @@ Then the while loop repeats until no pixels are left.
         Step & Function         & Effect                                               \\
         \midrule
         0    & read\_bitmap     & Imports bitmap as a three dimensional array          \\
-        1    & Greyscaling      & Populates two dimensional array with greyscale image \\
+        1    & Grey-scaling      & Populates two dimensional array with greyscale image \\
         2    & Binary threshold & Applies a binary threshold on the greyscale image    \\
-        3a   & Pixel check      & Check for white pixels                               \\
         3b   & Erosion          & Erodes image using erosion element                   \\
+        3a   & Pixel check      & Check for white pixels                               \\
         3c   & Detection        & Run detection routine                                \\
         3c1  & Draw             & Draw cross on original array                         \\
-        3c2  & Erase            & Erase area with detected cell                        \\
         4    & write\_bitmap    & Exports image array as bitmap                        \\
         \bottomrule
     \end{tabular}
 \end{table}
 \section{Implementation}\label{sec:implementation}
-\textit{Briefly discuss the implementation in C of your design. Explain how you have exploited the C language in the context of embedded system to implement the algorithm. You can include some code snippets if these are relevant to explain certain aspects of the implementation.}
-\section{Optimizations and enhancements}
+Our final design does not include C specific implementations, due to how heavy they are in time costs to implement, however it will be touched more upon in the test and analysis part, how sections of the program has been using bit wise operations to reduce memory requirements.
+\subsection{Cell detection}
+For the detection function, we have tried 3 different approaches.\newline
+In the first implementation of the cell detection algorithm a DFS search was used to detect the cells and it worked till a certain extent, besides the scenarios where the cells were touching. It found every cell that were alone on the grid. The concept about a DFS algorithm is finding pixels around the focused pixel, and then work around until it have detected the whole cell. \newline
+In the second implementation of the cell detection algorithm we used the 1 pixel exclusion frame and \(12\times12\) pixel capture area described in the assignment. For every pixel for loops would first scan the exclusion frame. If no cells were found, for loops would scan the capture areas content. If a cell was found a cell counter would increment and the coordinates be printed to the console. If a cell was captured, or not, the algorithm would jump a capture area ahead before beginning the scan again. This concept was kinda slow because two for loops were applied over capture areas of the picture after every erosion. For this reason we a new approach was made.\newline
+The third implementation was based primarily on erosion. We would erode the picture so much that there was only a single pixel left for each cell and then scan the picture of white pixels in the detection, and this turned out to be a lot faster.
+% The Draw function was small function that had a image, and 2 integers as parameters, the image was the original image that need to be drawn on and the 2 integers was coordinates for the position of the X. instead of having this white colour then it was replaced with RED colour for the line making a Cross, the colour was made from RGB.\newline
+\section{Optimisations and enhancements}
 \subsection{Otsu's method}\label{sec:otsu}
 Otsu's method was extensively looked into in order to get an automated optimal intensity for the binary threshold. Following was discovered:
 \begin{itemize}
     \item Otsu's method works best if two distinct classes of intensity exists, i.e. two distinct peaks in a intensity histogram over the image.
     \item Most pictures in the set does not contain two distinct peaks.
-    \item Existing implementations where tried to find optimal intensities (\href{https://rdrr.io/bioc/EBImage/}{EBI package for R}, \href{https://opencv.org/}{OpenCV (using Python)}). These tools pointed to intensities way higher than empirically studied values (115-150 agains the provided 90 or tested 80-110).
+    \item Existing implementations where tried to find optimal intensities (\href{https://rdrr.io/bioc/EBImage/}{EBI package for R}, \href{https://opencv.org/}{OpenCV (using Python)}). These tools pointed to intensities way higher than empirically studied values (115-150 against the provided 90 or tested 80-110).
 \end{itemize}
-A way of overcomming the problem could be through local thresholding, where ranges of intensities are left out, however time was already wasted on this rather time consuming endeavour.\newline
-\textit{Explain here the optimizations and enhancements you have implemented in order to improve cell detection rate, execution time, memory use, and/or other algorithm characteristics you considered relevant. Explain what was the motivation (thinking-process) behind the optimizations and enhancements you implemented.}
+A way of overcoming the problem could be through local thresholding, where ranges of intensities are left out, however time was already wasted on this rather time consuming endeavour.
 \subsection{Size of detection area}\label{sec:detect}
-There are two ways of changing the granularity in the search for cells. One can either change the erosion element or one can increase/decrease the size of the detection area. In here the later is discussed. The idea is that cells will need to be much smaller and therefore disconnected from neighbouring cells, adressing the issue of connected cells being counted as one. Practically the implementation is passing a variable to detection functions and use the variable to constrain search and exclusion indices. The smaller the detection area, the more erosion rounds are needed and therefore runtime is increased.
+There are two ways of changing the granularity in the search for cells. One can either change the erosion element or one can increase/decrease the size of the detection area. In here the later is discussed. The idea is that cells will need to be much smaller and therefore disconnected from neighbouring cells, addressing the issue of connected cells being counted as one. Practically the implementation is passing a variable to detection functions and use the variable to constrain search and exclusion indices. The smaller the detection area, the more erosion rounds are needed and therefore runtime is increased. It later turned out that our implementation of smaller detection areas yielded worse results and therefore it was abandoned.
+\subsection{Erosion and Design enhancement}\label{sec:erosion}
+Our first iteration of the program was quite slow; on the testing machine it took approximately \SI{2000}{\milli\second} to complete just 1 image and print it out. We felt this was unacceptable for the task given, as a small embedded system with much slower running speed could take multiple digits of seconds, and worse if 1 CPU has to run through multiple droplets. Therefore we decided to optimise for speed to suit this task better. Instead of going through a loop of erode \(\rightarrow\) detect \(\rightarrow\) erode and so on, we opted to do all the erosions at once, and then a detection round. This change sped up the program by about 8-12 times by sacrificing a bit of potential accuracy. However the accuracy might be raised if it was possible to take multiple pictures a second and average them in the real setting with all the time saved, thusly improving speed and likely accuracy too, as impossible cells that are overlapping might have shifted and given a clearer view.
+\subsection{Memory optimisation}
+We tested and tried changing the data structure and function of our code to package together bits, as after the threshold is applied, we only care whether they are black or white. We packed 8 different coordinates into 1 which reduced the tmp-array down to 950x119, a drastic reduction in byte size, Listing 1 and 2 showing this concept in code snippets. However it was costing a very large development time, leading to an unsuccessful implementation. It also still didn't touch upon the main issue, being the image array, which needs full RGB 0-255 data, which means we don't have any unused bits for the unsigned char coordinates to package together. If we wanted to reduce the size-load of this array, we considered to represent it in another way entirely through processing, or only load part of the image at a time.
+\begin{listing}[H]
+\caption{Greyscale conversion}\label{lst:grey-scale}
+    \begin{minted}[breaklines]{c}
+void grey_scale(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char tmp_image[BMP_HEIGTH][CompressSize])
+{
+    for (unsigned char i = 0; i < BMP_HEIGTH; i++) // Iterate over Height
+    {
+        for (unsigned char j = 0; j < CompressSize-1; j++) // Iterate over Bit_Width
+        {
+		  unsigned int Step = j*8;
+		    for (unsigned char BitLoop = 0; BitLoop <= 7; BitLoop++)
+            {
+                ((input_image[i][Step+BitLoop][0] + input_image[i][Step+BitLoop][1] + input_image[i][Step+BitLoop][2]) / 3) <= 90 ? continue : tmp_image[i][j] |= 1 << BitLoop ; 
+		    }                                                                                                    
+        }
+        for (unsigned char BitLoop = 0; BitLoop < 6; BitLoop++)
+        {
+             ((input_image[i][(944)+BitLoop][0] + input_image[i][(944)+BitLoop][1] + input_image[i][(944)+BitLoop][2]) / 3) <= 90 ? continue : tmp_image[i][118] |= 1 << BitLoop ;
+        }
+    }
+}
+\end{minted}
+\end{listing}
+\begin{listing}[H]
+\caption{Erosion method}\label{lst:erosion}
+    \begin{minted}[breaklines]{c}
+unsigned char erode(unsigned char tmp_image[BMP_HEIGTH][CompressSize])
+{
+	unsigned char Change=0;
+    unsigned char ErosionMap[BMP_HEIGTH][CompressSize] = {0}; // tmp_image sized matrix of 0's
+   
+    for (unsigned char k = 0; k < CompressSize-1; k++)
+    {
+		tmp_image[0][k] =0;
+        tmp_image[BMP_HEIGTH-1][k] =0;
+    }    
+    for (int i = 1; i < (BMP_HEIGHT-1); i++) 
+    {  //&= ~(1 << 0)
+	   // Cut off Border to ensure erosion and less fringe cases
+        tmp_image[i-1][0] &= ~(1 << 0);
+        tmp_image[i-1][CompressSize - 1] &= ~(1 << 5);		
+        ErosionMap[i][0] = (tmp_image[i+1][0]&tmp_image[i-1][0]&(((tmp_image[i][0]&= ~(1<<0))>>1)+128*(tmp_image[i][1]&(1<<0))))
+		ErosionMap[i][CompressSize-1] = (tmp_image[i+1][0]&tmp_image[i-1][0]&(((tmp_image[i][0]&= ~(1<<0))>>1)+128*(tmp_image[i][-1]&(1<<7))))
+	}
+    for (int j = 1; j < (CompressSize-1); j++)
+    {
+		ErosionMap[i][j] = (tmp_image[i+1][j]&tmp_image[i-1][j]&(((tmp_image[i][j]&= ~(1<<0))>>1)+128*(tmp_image[i][j+1]&(1<<0)))&(((tmp_image[i][0]&= ~(1<<0))>>1)+128*(tmp_image[i][-1]&(1<<7))))   
+    }
+\end{minted}
+\end{listing}
 \section{Test and analysis}
 \subsection{Proof of concept version}\label{sec:poctest}
 This section will discuss the non-optimised version of the program.
 \subsubsection{Functionality tests}
-\cref{tbl:pocfunc} shows an overwiev over detection on the various images.
-\begin{table}
+\cref{tbl:pocfunc} shows an overview over detection on the various images. The detection rate decreases as difficulty of the pictures increases. This is largely due to cells clumping together, and is expected from the get-go.
+\begin{table}[H]
     \centering
-    \caption{Functionality test on provided images. \faCheck \ indicates 300 cells accounted for. \faClose \ indicates otherwise.}\label{tbl:pocfunc}
-    \begin{tabular}{rcccc}
+    \caption{Functionality test on provided images. Percentages are relative to the actual number of 300 cells.}
+    \begin{subtable}[t]{.49\textwidth}
+    \centering
+    \caption{Proof of concept implementation}\label{tbl:pocfunc}
+    \begin{tabular}{rccccc}
            & Easy     & Medium   & Hard     & Impossible \\
-        1  & \faCheck & \faClose & \faClose & \faClose   \\
-        2  & \faClose & \faClose & \faClose & \faClose   \\
-        3  & \faCheck & \faClose & \faClose & \faClose   \\
-        4  & \faClose & \faClose & \faClose & \faClose   \\
-        5  & \faClose & \faClose & \faClose & \faClose   \\
-        6  & \faClose & \faClose & \faClose & N/A        \\
-        7  & \faClose & \faClose & \faClose & N/A        \\
-        8  & \faCheck & \faClose & \faClose & N/A        \\
-        9  & \faClose & \faClose & \faClose & N/A        \\
-        10 & \faClose & \faClose & \faClose & N/A        \\
+        1  & 100 \%   & 88.3 \% & 87.3 \% & 72.3 \%   \\
+        2  & 99.7 \%  & 88.7 \% & 79.0 \% & 73.7 \%   \\
+        3  & 100 \%   & 88.0 \% & 81.3 \% & 73.0 \%   \\
+        4  & 99.3 \%  & 88.0 \% & 83.0 \% & 72.7 \%   \\
+        5  & 99.0 \%  & 83.0 \% & 85.3 \% & 76.3 \%   \\
+        6  & 99.0 \%  & 92.0 \% & 86.7 \% & N/A        \\
+        7  & 99.3 \%  & 86.7 \% & 86.7 \% & N/A        \\
+        8  & 100 \%   & 82.3 \% & 87.7 \% & N/A        \\
+        9  & 99.7 \%  & 86.0 \% & 87.3 \% & N/A        \\
+        10 & 99.7 \%  & 88.0 \% & 83.0 \% & N/A        \\
+        \end{tabular}
+        \end{subtable}
+        \hfill
+        \begin{subtable}[t]{.49\textwidth}
+        \centering
+        \caption{Optimised implementation}\label{tbl:optfunc}
+        \begin{tabular}{rcccc}
+        %Avg full runtime = 387ms
+           & Easy & Medium & Hard & Impossible \\
+        1  & 97.3 \% & 98.7 \% & 95.3 \% & 88.3 \%   \\
+        2  & 97.0 \% & 96.3 \% & 89.3 \% & 86.3\%   \\
+        3  & 96.0 \% & 96.3 \% & 91.0 \% & 87.7\%   \\
+        4  & 96.3 \% & 95.7 \% & 95.3\% & 84.0\%   \\
+        5  & 95.7 \% & 91.3 \% & 99.0\% & 88.0\%   \\
+        6  & 98.0 \% & 99.0 \% & 97.7\% & N/A        \\
+        7  & 96.7 \% & 93.0 \% & 95.3\% & N/A        \\
+        8  & 99.0 \% & 91.0 \% & 96.0\% & N/A        \\
+        9  & 96.3 \% & 93.0 \% & 95.0\% & N/A        \\
+        10 & 95.7 \% & 97.3 \% & 93.3\% & N/A        \\
     \end{tabular}
-\end{table}
+    \end{subtable}
+    \end{table}
 \subsubsection{Execution time analysis}
 We are using a imported the tool "time.h" to track the time used in the program, where we set a start and end value of clock types. We can then calculate the time spent in the program by subtracting those values, multiply by a thousand and divide with the value called CLOCKS\_ PER\_ SEC that are set in the time.h header file. This produces the runtime in milliseconds.\newline
-Most functions on the greyscale image array iterates on one axis while iterating the other in a nested loop. If cells are found a small nested for loop is performed in the capture area and therefore considered negligeble. To save time, whenever a cell is found it is removed. Therefore the number of erosion and detection iterations depends highly on how quickly cells erode to a detectable size.
+Most functions on the grey scale image array iterates on one axis while iterating the other in a nested loop. If cells are found a small nested for loop is performed in the capture area and therefore considered negligible. To save time, whenever a cell is found it is removed. Therefore the number of erosion and detection iterations depends highly on how quickly cells erode to a detectable size.
 Runtime is estimated as \(O(n^2)\) for an image of size \(n\times n\).
-\subsubsection{Memory use analysis}
-Two arrays are consisten throughout the program. The arrays have sizes:
+\subsubsection{Memory use analysis}\label{sec:mem}
+Two arrays are consistently used throughout the program. The arrays have sizes:
 \begin{align}
     \text{image\_array} \  & = n \cdot n \cdot 3 \cdot \SI{8}{\bit} = n^2 \cdot \SI{24}{\bit} \\
     \text{tmp\_array} \    & = n \cdot n \cdot \SI{8}{\bit} = n^2 \cdot \SI{8}{\bit}
 \end{align}
-For the 950 \(\times\) 950 pixel image this means the sum of memory allocated for the images is
+Additionally, for the erosion we temporarily use an array Mask of the same dimensions as tmp-array thusly,
+for the 950 \(\times\) 950 pixel images this means the sum of memory allocated at the heaviest memory load time is
 \begin{align}
-    950^2 \cdot \SI{24}{\bit} + 950^2 \cdot \SI{8}{\bit} \approx \SI{3.61}{\mega\byte}
+    950^2 \cdot \SI{24}{\bit} + 950^2 \cdot \SI{8}{\bit} \cdot 2  \approx \SI{4.51}{\mega\byte}
 \end{align}
-The memory is depending on the arrays and as such uses \(O(n^2)\) space for an image of size \(n\times n\).
-\textit{Report here the results from the test and analysis you have carried out according to the assignment instructions.  You need to at least address the following: functionality tests, execution time analysis, memory use analysis.
-    For each optimization/enhancements you implement, you need to perform tests to prove its validity. If you have implemented optimization/enhancements which do not give the expected benefits, describe why it does not work.
-    Remember to discuss the results from the test and analysis you have carried out, do not just present them, but explain and argue their meaning.}
+The memory is largely depending on the arrays and as such uses \(O(n^2)\) space for an image of size \(n\times n\).
+\subsection{Optimised version}\label{sec:optimised}
+Here the program version with an optimised erosion and detection algorithm is analysed.
+\subsubsection{Functionality tests} \cref{tbl:optfunc} shows the results of the functionality test using the optimised version. After we tested the newer version and put them up side by side and then we can see it was better in testing overall. It was worse than the other one on easy but was better in the other difficulties. We much prefer this result, as it should be very apt for the task given, a camera picture of real life cells could prove clumps that are fully impossible to prove the amount of cells within from a picture, thusly there should never be a reliance on specifically the program to be correct every time, and it would make more sense to use it as a tool in either calculations or understanding, wherein a 5\% margin of error should suffice quite well.
+\subsubsection{Execution time analysis}
+The final implementation uses a lot less time because we are getting rid of the reading an image multiple times every erosion. Since we got rid of the border frame detection, now the program uses erosion until it has no changes left. Then it will call detection and search for white pixels, because the erosion has left out a single pixel for every cell, this way it's way faster, with an avg time of 387 ms on a poorly equipped laptop. 
+\subsubsection{Memory use analysis}
+The final implementation uses the same memory as mentioned in \cref{sec:mem}\newline
+This is a large amount of memory required for a micro computer, and will have to cost a small investment. Small computers like the Arduino board Portenta H7\cite{arduino} has sufficient memory therefore a requirement of less than \SI{8}{\mega\byte} seemed a sufficient answer for an immobile micro-scope computer however, Which makes us comfortable with this memory requirement as to not hurt the runtime by reloading and splitting memory.
+
+
 % \section{References}
-% \textit{List here the references that you have used (if any) It can be articles or websites where you have found inspiration and understanding.}
+\begin{thebibliography}{1}
+\bibitem{arduino}
+Arduino, José Bagur, Taddy Chung \emph{Arduino Memory Guide (19/09/2023)\newline \href{https://docs.arduino.cc/learn/programming/memory-guide}{https://docs.arduino.cc/learn/programming/memory-guide}}
+\end{thebibliography}
 %Bibliography herunder:
 %\newpage
 
