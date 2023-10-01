@@ -14,7 +14,7 @@ void binary_threshold(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], int t_opt)
 void to_rgb(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]);
 
 // Erosion method
-void erode(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH]);
+unsigned char erode(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH]);
 
 // Count white pixels
 int pixelCheck(unsigned char tmp_image[BMP_WIDTH][BMP_HEIGTH]);
