@@ -78,6 +78,7 @@ int main(int argc, char **argv)
   end = clock();
   cpu_time_used = (end - start) * 1000.0 / CLOCKS_PER_SEC;
   printf("| Total time: %.0f ms         |\n", cpu_time_used);
+  printf("| Clock cycles: %4d          |\n", (end - start));
   printf("|-----------------------------|\n");
   return 0;
 }
